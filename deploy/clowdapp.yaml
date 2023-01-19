@@ -34,7 +34,7 @@ objects:
     testing:
       iqePlugin: ccx
     deployments:
-      - name: service
+      - name: instance
         replicas: ${{REPLICAS}}
         webServices:
           public:

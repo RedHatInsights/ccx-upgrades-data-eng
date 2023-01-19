@@ -2,8 +2,8 @@
 
 from fastapi.testclient import TestClient
 
-from main import app
-from examples import EXAMPLE_PREDICTORS
+from ccx_upgrades_data_eng.main import app
+from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS
 
 
 client = TestClient(app)

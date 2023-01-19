@@ -2,7 +2,7 @@ fastapi==0.88.0
 uvicorn[standard]==0.20.0
 
 # Just for development:
-pytest==7.2.0
+pytest-cov==4.0.0
 pylint==2.15.9  # pre-commit
 toml==0.10.2    # pre-commit
 httpx==0.23.3    # fastapi testing
