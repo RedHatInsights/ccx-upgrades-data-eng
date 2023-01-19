@@ -1,9 +1,10 @@
 """Models to be used in the REST API."""
 
-from typing import List, Dict
+from typing import List
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
-from examples import EXAMPLE_ALERT, EXAMPLE_FOC, EXAMPLE_PREDICTORS
+from ccx_upgrades_data_eng.examples import EXAMPLE_ALERT, EXAMPLE_FOC, EXAMPLE_PREDICTORS
+
 
 class Alert(BaseModel):  # pylint: disable=too-few-public-methods
     """Alert containing name, namespace and severity."""
@@ -30,7 +31,10 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
 
         schema_extra = {"example": {"foc": EXAMPLE_FOC}}
 
+
 class UpgradeRisksPredictors(BaseModel):
+    """A dict containing list of alerts and FOCs."""
+
     alerts: List[Alert]
     operator_conditions: List[FOC]
 
@@ -50,7 +54,8 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
         """Update the configuration with an example."""
 
         schema_extra = {
-            "example": {"upgrade_recommended": False, 
-                        "upgrade_risks_predictors": EXAMPLE_PREDICTORS
-                    }
+            "example": {
+                "upgrade_recommended": False,
+                "upgrade_risks_predictors": EXAMPLE_PREDICTORS,
+            }
         }
