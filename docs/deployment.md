@@ -43,11 +43,7 @@ oc --namespace $NAMESPACE run curl -i --tty --rm \
 Wait for the command prompt. Then run some requests:
 
 ```
-curl -s -X 'GET' \
-    'ccx-upgrades-data-eng-svc:8000/upgrade-risks-prediction' \
-    -H 'accept: application/json' \
-    -H 'Content-Type: application/json' \
-    -d '{"risks": ["foc|machine-config|Available"]}'
+curl -s 'ccx-upgrades-data-eng-svc:8000/upgrade-risks-prediction/?cluster_id=34c3ecc5-624a-49a5-bab8-4fdc5e51a266'
 ```
 
 You should see the response. Exit the container using `CTRL+D` or `exit`. The 
