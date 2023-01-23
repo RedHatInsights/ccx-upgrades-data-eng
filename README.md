@@ -10,8 +10,7 @@ Related Jira: [CCXDEV-9718](https://issues.redhat.com/browse/CCXDEV-9718)
 Change to the source folder and run the app using `uvicorn`:
 
 ```
-cd src
-uvicorn main:app --reload
+uvicorn ccx_upgrades_data_eng.main:app --reload
 ```
 
 Then run some requests against the server:
