@@ -7,7 +7,6 @@ COPY . /ccx-upgrades-data-eng
 USER 0
 
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
 RUN pip install .
 
 USER 1001
