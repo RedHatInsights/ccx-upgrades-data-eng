@@ -1,0 +1,48 @@
+"""Contains the manager for Oauth2 session."""
+
+import logging
+import time
+
+import requests
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
+
+
+logger = logging.getLogger(__name__)
+
+
+class Oauth2Manager:
+    """Allows to keep track of the authentication token and refresh it when needed."""
+
+    def __init__(self, client_id: str, client_secret: str, issuer: str) -> None:
+        """Initialize the Oauth2Manager with the given credentials."""
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.issuer = issuer
+
+        oauth_config_uri = f"{self.issuer}/.well-known/openid-configuration"
+        oidc_config = requests.get(oauth_config_uri).json()
+        self._token_endpoint = oidc_config["token_endpoint"]
+        logger.info("Configured token endpoint: %s", self._token_endpoint)
+
+        self.client = BackendApplicationClient(client_id=self.client_id)
+        self.session = OAuth2Session(client=self.client)
+        self._token = None
+
+    def refresh_token(self) -> str:
+        """Refresh the token when it is near to its expiration."""
+        if self._token and self._token["expires_at"] > time.time() + 30.0:
+            logger.debug("Token still valid. Not refreshing")
+            return
+
+        logger.debug("Token is expired or about to expire. Refreshing")
+        self._token = self.session.fetch_token(
+            token_url=self._token_endpoint,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+        )
+
+    def get_session(self) -> OAuth2Session:
+        """Return the OauthSession2 after refreshing the auth token."""
+        self.refresh_token()
+        return self.session

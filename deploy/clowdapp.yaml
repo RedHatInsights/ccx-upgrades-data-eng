@@ -73,6 +73,25 @@ objects:
             requests:
               cpu: "${CPU_REQUEST}"
               memory: 200Mi
+          env:
+            - name: CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: rhobs-sso-client-auth
+                  key: client_id
+                  optional: false
+            - name: CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rhobs-sso-client-auth
+                  key: client_secret
+            - name: SSO_ISSUER
+              value: ${RH_SSO_URL}
+            - name: RHOBS_URL
+              value: ${RHOBS_URL}
+            - name: RHOBS_TENANT
+              value: ${OBSERVATORIUM_TENANT}
+
 
 - kind: Service
   apiVersion: v1
@@ -108,3 +127,13 @@ parameters:
 - description: ClowdEnv Name
   name: ENV_NAME
   required: true
+
+- description: RH Observatorium Base URL
+  name: RHOBS_URL
+  value: https://observatorium.api.stage.openshift.com
+- description: RH Observatorium Tenant
+  name: OBSERVATORIUM_TENANT
+  value: telemeter
+- description: RH Single Sign-On URL
+  name: RH_SSO_URL
+  value: https://sso.redhat.com/auth/realms/redhat-external

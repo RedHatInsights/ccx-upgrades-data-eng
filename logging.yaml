@@ -1,0 +1,47 @@
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  default:
+    (): uvicorn.logging.DefaultFormatter
+    fmt: '%(levelprefix)s %(message)s'
+    use_colors: None
+  access:
+    (): uvicorn.logging.AccessFormatter
+    fmt: '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  default:
+    formatter: default
+    class: logging.StreamHandler
+    stream: ext://sys.stderr
+  access:
+    formatter: access
+    class: logging.StreamHandler
+    stream: ext://sys.stdout
+loggers:
+  ccx_upgrades_data_eng.token_refresh:
+    level: DEBUG
+    handlers: [default]
+    propagate: no
+  ccx_upgrades_data_eng.main:
+    level: DEBUG
+    handlers: [default]
+    propagate: no
+  uvicorn:
+    handlers: [default]
+    level: INFO
+    propagate: no
+  uvicorn.error:
+    level: INFO
+  uvicorn.access:
+    handlers: [access]
+    level: INFO
+    propagate: no
+root:
+  level: INFO
+  handlers: [default]
