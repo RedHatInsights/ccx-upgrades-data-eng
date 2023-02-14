@@ -21,7 +21,7 @@ The service will read the following environment variables:
 `uvicorn` allows to pass a [Python logging configuration](https://docs.python.org/3/library/logging.config.html#logging-config-fileformat)
 to modify the output of the service.
 
-A default one was provided in `logging.yaml` file, that will be used by 
+A default one was provided in `logging.yaml` file, that will be used by
 the Docker container image.
 
 ## Run it locally
