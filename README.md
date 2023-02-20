@@ -1,12 +1,12 @@
 # Upgrade Risks Predictions Data Engineering Service
 
 This is the main reporsitory of the Upgrade Risks Predictions Data Engineering
-service. This service was created as part of the 
+service. This service was created as part of the
 [CCXDEV-9718](https://issues.redhat.com/browse/CCXDEV-9718) epic.
 
 The responsibilities of the data-eng service are:
 1. Query RHOBS (a huge Thanos instance that stores the historical metrics of our
-customers' clusters) in order to get the latest metrics for a given cluster 
+customers' clusters) in order to get the latest metrics for a given cluster
 ([CCXDEV-9850](https://issues.redhat.com/browse/CCXDEV-9850)).
 1. Apply a ML model (running in [ccx-upgrades-inference](https://redhat.com/ccx-inference-service))
 to select the metrics that are more likely to affect the cluster upgrade.
