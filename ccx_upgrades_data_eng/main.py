@@ -13,9 +13,17 @@ from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
 from ccx_upgrades_data_eng.rhobs_queries import single_cluster_alerts_and_focs
 
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
+
+
+@app.on_event("startup")
+async def expose_metrics():
+    """Expose the prometheus metrics in the /metrics endpoint."""
+    logger.info("Metrics available at /metrics")
+    Instrumentator().instrument(app).expose(app)
 
 
 @lru_cache()
