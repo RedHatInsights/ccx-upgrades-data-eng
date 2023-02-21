@@ -20,10 +20,12 @@ oc login --token=${TOKEN} --server=<ephemeral cluster>
 export NAMESPACE=$(bonfire namespace reserve)
 ```
 
-4. Deploy the renderer
+4. Deploy the data-eng service
 ```
-bonfire deploy -c deploy/test.yaml -n $NAMESPACE ccx-upgrades-data-eng
+bonfire deploy -c deploy/test.yaml -n $NAMESPACE ccx-data-pipeline
 ```
+
+You may have to hardcode the secrets in [clowdapp.yaml](../deploy/clowdapp.yaml).
 
 5. Check the pod is deployed
 
@@ -32,7 +34,7 @@ POD=`oc --namespace $NAMESPACE get pods | grep ccx-upgrades-data-eng | awk '{pri
 oc --namespace $NAMESPACE logs $POD
 ```
 
-6. Make a request to the renderer
+6. Make a request to the data-eng service
 
 Launch a debugging pod with curl installed:
 ```
