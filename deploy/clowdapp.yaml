@@ -96,7 +96,11 @@ objects:
 - kind: Service
   apiVersion: v1
   metadata:
-    # TODO: add prometheus annotations when we have metrics available
+    annotations:
+      prometheus.io/path: /metrics
+      prometheus.io/port: "8000"
+      prometheus.io/scheme: http
+      prometheus.io/scrape: "true"
     name: ccx-upgrades-data-eng-svc
     labels:
       app: ccx-upgrades-data-eng
