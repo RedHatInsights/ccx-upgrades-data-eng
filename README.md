@@ -31,6 +31,10 @@ to modify the output of the service.
 A default one was provided in `logging.yaml` file, that will be used by
 the Docker container image.
 
+## Dashboards
+
+Definition of the dashboard for this service and the [inference](https://redhat.com/ccx-inference-service) one is located in [dashboards](dashboards).
+
 ## Testing and local development
 
 ### Run it locally
