@@ -52,7 +52,7 @@ def refresh_sso_token() -> None:
     session_manager.refresh_token()
 
 
-@app.get("/upgrade-risks-prediction/", response_model=UpgradeApiResponse)
+@app.get("/cluster/{cluster_id}/upgrade-risks-prediction", response_model=UpgradeApiResponse)
 async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depends(get_settings)):
     """Return the predition of an upgrade failure given a set of alerts and focs."""
     logger.info(f"Received cluster: {cluster_id}")
