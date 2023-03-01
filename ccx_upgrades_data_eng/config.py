@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     rhobs_tenant: str = RHOBS_DEFAULT_TENANT
     rhobs_request_timeout: float = None
 
+    # Inference service configuration
+    inference_url: str
+
 
 @lru_cache()
 def get_settings() -> Settings:

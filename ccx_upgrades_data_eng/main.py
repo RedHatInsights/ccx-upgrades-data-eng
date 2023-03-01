@@ -78,7 +78,9 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     if response.status_code == 404:
         raise HTTPException(status_code=404, detail="Cluster not found")
 
-    # TODO @jdiazsua (CCXDEV-9855): Use the real inference service
+    # TODO: CCXDEV-10301 wait until dictionary based on Alert and OperatorCondition is delivered
+    # inference_endpoint = f"{settings.inference_url}/upgrade-risks-prediction"
+    # requests.get(inference_endpoint, params={})
 
     return UpgradeApiResponse(
         upgrade_recommended=False, upgrade_risks_predictors=EXAMPLE_PREDICTORS
