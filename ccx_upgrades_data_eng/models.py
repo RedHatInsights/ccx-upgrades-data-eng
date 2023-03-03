@@ -20,7 +20,7 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
 
     @classmethod
     def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
-        """Wrape the parsing of an Observatorium metric object and return an Alert"""
+        """Wrap the parsing of an Observatorium metric object and return an Alert"""
         if "alertname" in obj:
             obj["name"] = obj["alertname"]
 
