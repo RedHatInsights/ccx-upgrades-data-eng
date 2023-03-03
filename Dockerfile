@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/python-39:1-73
+FROM registry.access.redhat.com/ubi8/python-39:1-105
 
 WORKDIR /ccx-upgrades-data-eng
 
