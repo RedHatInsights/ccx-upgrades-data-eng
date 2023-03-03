@@ -28,6 +28,7 @@ RHOBS_RESPONSE = {
     "data": {
         "resultType": "vector",
         "result": [
+            # Alert metric
             {
                 "metric": {
                     "__name__": "alerts",
@@ -45,6 +46,7 @@ RHOBS_RESPONSE = {
                 },
                 "value": [1677825120.237, "1"],
             },
+            # FOC metric
             {
                 "metric": {
                     "__name__": "cluster_operator_conditions",
@@ -61,6 +63,17 @@ RHOBS_RESPONSE = {
                     "receive": "true",
                     "service": "cluster-version-operator",
                     "tenant_id": "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                },
+                "value": [1677825120.237, "0"],
+            },
+            # No metric key
+            {
+                "value": [1677825120.237, "0"],
+            },
+            # Unexpected metric
+            {
+                "metric": {
+                    "__name__": "an unexpected metric name",
                 },
                 "value": [1677825120.237, "0"],
             },
