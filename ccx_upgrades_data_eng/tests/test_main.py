@@ -21,6 +21,67 @@ needed_env = {
 }
 
 
+RHOBS_EMPTY_REPONSE = {"status": "success", "data": {"resultType": "vector", "result": []}}
+
+RHOBS_RESPONSE = {
+    "status": "success",
+    "data": {
+        "resultType": "vector",
+        "result": [
+            # Alert metric
+            {
+                "metric": {
+                    "__name__": "alerts",
+                    "_id": "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                    "alertname": "APIRemovedInNextEUSReleaseInUse",
+                    "alertstate": "firing",
+                    "group": "batch",
+                    "namespace": "openshift-kube-apiserver",
+                    "prometheus": "openshift-monitoring/k8s",
+                    "receive": "true",
+                    "resource": "cronjobs",
+                    "severity": "info",
+                    "tenant_id": "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                    "version": "v1beta1",
+                },
+                "value": [1677825120.237, "1"],
+            },
+            # FOC metric
+            {
+                "metric": {
+                    "__name__": "cluster_operator_conditions",
+                    "_id": "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                    "condition": "Available",
+                    "endpoint": "metrics",
+                    "instance": "10.0.142.139:9099",
+                    "job": "cluster-version-operator",
+                    "name": "authentication",
+                    "namespace": "openshift-cluster-version",
+                    "pod": "cluster-version-operator-6b5c8ff5c8-vrmnl",
+                    "prometheus": "openshift-monitoring/k8s",
+                    "reason": "OAuthServerRouteEndpointAccessibleController_EndpointUnavailable",
+                    "receive": "true",
+                    "service": "cluster-version-operator",
+                    "tenant_id": "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                },
+                "value": [1677825120.237, "0"],
+            },
+            # No metric key
+            {
+                "value": [1677825120.237, "0"],
+            },
+            # Unexpected metric
+            {
+                "metric": {
+                    "__name__": "an unexpected metric name",
+                },
+                "value": [1677825120.237, "0"],
+            },
+        ],
+    },
+}
+
+
 @mock.patch.dict(os.environ, needed_env)
 class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
     """Check the /upgrade-risks-prediction endpoint."""
@@ -59,8 +120,51 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         response = client.get(f"/cluster/{cluster_id}/upgrade-risks-prediction")
 
         assert get_session_manager_mock.called
-
         assert response.status_code == 404
+
+    @patch("ccx_upgrades_data_eng.main.get_session_manager")
+    def test_rhobs_empty_response(self, get_session_manager_mock):
+        """If the response from rhobs is empty, the status code should be 200."""
+        # Prepare the mocks
+        session_manager_mock = MagicMock()
+        session_mock = MagicMock()
+        response_mock = MagicMock()
+
+        response_mock.status_code = 200
+        response_mock.json.return_value = RHOBS_EMPTY_REPONSE
+
+        get_session_manager_mock.return_value = session_manager_mock
+        session_manager_mock.get_session.return_value = session_mock
+        session_mock.get.return_value = response_mock
+
+        cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+        response = client.get(f"/cluster/{cluster_id}/upgrade-risks-prediction")
+
+        assert get_session_manager_mock.called
+        assert response.status_code == 200
+        # TODO: Add more checks when the response is not static
+
+    @patch("ccx_upgrades_data_eng.main.get_session_manager")
+    def test_rhobs_response(self, get_session_manager_mock):
+        """If the response from rhobs include valid alerts/focs, the response should be 200."""
+        # Prepare the mocks
+        session_manager_mock = MagicMock()
+        session_mock = MagicMock()
+        response_mock = MagicMock()
+
+        response_mock.status_code = 200
+        response_mock.json.return_value = RHOBS_RESPONSE
+
+        get_session_manager_mock.return_value = session_manager_mock
+        session_manager_mock.get_session.return_value = session_mock
+        session_mock.get.return_value = response_mock
+
+        cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+        response = client.get(f"/cluster/{cluster_id}/upgrade-risks-prediction")
+
+        assert get_session_manager_mock.called
+        assert response.status_code == 200
+        # TODO: Add more checks when the response is not static
 
     def test_old_endpoint(self):
         """Test old endpoint should return a 404."""

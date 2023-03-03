@@ -10,7 +10,7 @@ from fastapi_utils.tasks import repeat_every
 from ccx_upgrades_data_eng.auth import Oauth2Manager
 from ccx_upgrades_data_eng.config import get_settings, Settings
 from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS
-from ccx_upgrades_data_eng.models import UpgradeApiResponse
+from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeApiResponse, UpgradeRisksPredictors
 from ccx_upgrades_data_eng.rhobs_queries import single_cluster_alerts_and_focs
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -67,16 +67,35 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
         timeout=settings.rhobs_request_timeout,
     )
 
-    content = response.json()
-    logger.info(
-        "Observatorium response contains %s results",
-        len(content["data"]["result"]),
-    )
-    logger.debug("Observatorium request elapsed time: %s", response.elapsed.total_seconds())
-    logger.debug("Observatorium response results: %s", content)
-
     if response.status_code == 404:
         raise HTTPException(status_code=404, detail="Cluster not found")
+
+    content = response.json()
+    results = content.get("data", dict()).get("result", list())
+    logger.info("Observatorium response contains %s results", len(results))
+    logger.debug("Observatorium request elapsed time: %s", response.elapsed.total_seconds())
+    logger.debug("Observatorium response results: %s", results)
+
+    alerts = list()
+    focs = list()
+
+    for result in results:
+        metric = result.get("metric")
+        if not metric:
+            logger.debug("result received with no metric: %s", result)
+            continue
+
+        if metric["__name__"] == "alerts":
+            alerts.append(Alert.parse_metric(metric))
+
+        elif metric["__name__"] == "cluster_operator_conditions":
+            focs.append(FOC.parse_obj(metric))
+
+        else:
+            logger.debug("received a metric from unexpected type: %s", metric["__name__"])
+
+    # TODO: remove linter-disable when integrated with real request to inference service
+    risk_predictors = UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs)  # noqa
 
     # TODO @jdiazsua (CCXDEV-9855): Use the real inference service
 
