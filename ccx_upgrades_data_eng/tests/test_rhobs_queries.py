@@ -7,9 +7,11 @@ def test_single_cluster_alerts_and_focs():
     """Test if single_cluster_alerts_and_focs returns the expected query."""
     assert (
         single_cluster_alerts_and_focs("test")
-        == """alerts{_id="test"}
+        == """alerts{_id="test", namespace=~"openshift-.*", severity=~"warning|critical"}
 or
-cluster_operator_conditions{_id="test"}"""
+cluster_operator_conditions{_id="test", condition="Available"} == 0
+or
+cluster_operator_conditions{_id="test", condition="Degraded"} == 1"""
     )
 
 
@@ -17,11 +19,15 @@ def test_multi_cluster_alerts_and_focs():
     """Test if alerts_and_focs returns the expected query."""
     assert (
         alerts_and_focs(["test1", "test2"])
-        == """alerts{_id="test1"}
+        == """alerts{_id="test1", namespace=~"openshift-.*", severity=~"warning|critical"}
 or
-cluster_operator_conditions{_id="test1"}
+cluster_operator_conditions{_id="test1", condition="Available"} == 0
 or
-alerts{_id="test2"}
+cluster_operator_conditions{_id="test1", condition="Degraded"} == 1
 or
-cluster_operator_conditions{_id="test2"}"""
+alerts{_id="test2", namespace=~"openshift-.*", severity=~"warning|critical"}
+or
+cluster_operator_conditions{_id="test2", condition="Available"} == 0
+or
+cluster_operator_conditions{_id="test2", condition="Degraded"} == 1"""
     )
