@@ -23,7 +23,7 @@ appsFile:
   path: bonfire_configs/ephemeral_apps.yaml
 
 apps:
-- name: ccx-upgrades-data-eng
+- name: ccx-data-pipeline
   components:
     - name:  ccx-upgrades-data-eng
       host: local
