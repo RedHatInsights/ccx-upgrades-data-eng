@@ -91,6 +91,8 @@ objects:
               value: ${RHOBS_URL}
             - name: RHOBS_TENANT
               value: ${OBSERVATORIUM_TENANT}
+            - name: INFERENCE_URL
+              value: ${INFERENCE_SERVICE_URL}
 
 
 - kind: Service
@@ -141,3 +143,6 @@ parameters:
 - description: RH Single Sign-On URL
   name: RH_SSO_URL
   value: https://sso.redhat.com/auth/realms/redhat-external
+- description: URL to the Upgrade Risks Prediction Inference service
+  name: INFERENCE_SERVICE_URL
+  value: http://ccx-upgrades-inference-svc:8000
