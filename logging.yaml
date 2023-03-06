@@ -24,11 +24,7 @@ handlers:
     class: logging.StreamHandler
     stream: ext://sys.stdout
 loggers:
-  ccx_upgrades_data_eng.token_refresh:
-    level: DEBUG
-    handlers: [default]
-    propagate: no
-  ccx_upgrades_data_eng.main:
+  ccx_upgrades_data_eng:
     level: DEBUG
     handlers: [default]
     propagate: no
