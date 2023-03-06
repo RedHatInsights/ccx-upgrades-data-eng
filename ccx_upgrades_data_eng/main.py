@@ -97,7 +97,9 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     # TODO: remove linter-disable when integrated with real request to inference service
     risk_predictors = UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs)  # noqa
 
-    # TODO @jdiazsua (CCXDEV-9855): Use the real inference service
+    # TODO: CCXDEV-10301 wait until dictionary based on Alert and OperatorCondition is delivered
+    # inference_endpoint = f"{settings.inference_url}/upgrade-risks-prediction"
+    # requests.get(inference_endpoint, params={})
 
     return UpgradeApiResponse(
         upgrade_recommended=False, upgrade_risks_predictors=EXAMPLE_PREDICTORS
