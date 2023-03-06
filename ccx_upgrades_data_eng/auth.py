@@ -2,10 +2,13 @@
 
 import logging
 import time
+from functools import lru_cache
 
 import requests
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
+
+from ccx_upgrades_data_eng.config import get_settings
 
 
 logger = logging.getLogger(__name__)
@@ -46,3 +49,14 @@ class Oauth2Manager:
         """Return the OauthSession2 after refreshing the auth token."""
         self.refresh_token()
         return self.session
+
+
+@lru_cache()
+def get_session_manager() -> Oauth2Manager:
+    """Oauth2Manager cache."""
+    settings = get_settings()
+    return Oauth2Manager(
+        settings.client_id,
+        settings.client_secret,
+        settings.sso_issuer,
+    )
