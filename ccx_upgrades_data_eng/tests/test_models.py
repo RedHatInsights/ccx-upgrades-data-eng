@@ -3,7 +3,7 @@
 import pydantic
 import pytest
 
-from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeApiResponse
+from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeApiResponse, InferenceResponse
 from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS
 
 
@@ -240,4 +240,10 @@ def test_upgrade_api_response():
     response = UpgradeApiResponse(
         upgrade_recommended=False, upgrade_risks_predictors=EXAMPLE_PREDICTORS
     )
+    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS
+
+
+def test_inference_response():
+    """Test the InferenceResponse can be created and fields are populated."""
+    response = InferenceResponse(upgrade_risks_predictors=EXAMPLE_PREDICTORS)
     assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS
