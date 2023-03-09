@@ -47,16 +47,30 @@ class UpgradeRisksPredictors(BaseModel):
     operator_conditions: List[FOC]
 
 
-class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
+class InferenceResponse(BaseModel):
+    """The response obtained from the inference service."""
+
+    upgrade_risks_predictors: UpgradeRisksPredictors
+
+    class Config:  # pylint: disable=too-few-public-methods
+        """Update the configuration with an example."""
+
+        schema_extra = {
+            "example": {
+                "upgrade_risks_predictors": EXAMPLE_PREDICTORS,
+            }
+        }
+
+
+class UpgradeApiResponse(InferenceResponse):  # pylint: disable=too-few-public-methods
     """
     UpgradeApiResponse is the response for the upgrade-risks-prediction endpoint.
 
-    Contain the result of the prediction: whether the upgrade will fail or not; and
-    the predictors that the model detected as actual risks.
+    Contain the result of the prediction: whether the upgrade will fail or not;
+    and the predictors that the model detected as actual risks.
     """
 
     upgrade_recommended: bool
-    upgrade_risks_predictors: UpgradeRisksPredictors
 
     class Config:  # pylint: disable=too-few-public-methods
         """Update the configuration with an example."""
