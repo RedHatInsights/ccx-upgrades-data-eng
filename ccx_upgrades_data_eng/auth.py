@@ -17,14 +17,15 @@ logger = logging.getLogger(__name__)
 class Oauth2Manager:
     """Allows to keep track of the authentication token and refresh it when needed."""
 
-    def __init__(self, client_id: str, client_secret: str, issuer: str) -> None:
+    def __init__(self, client_id: str, client_secret: str, issuer: str, mock_sso: bool) -> None:
         """Initialize the Oauth2Manager with the given credentials."""
         self.client_id = client_id
         self.client_secret = client_secret
         self.issuer = issuer
+        self.verify = not mock_sso
 
         oauth_config_uri = f"{self.issuer}/.well-known/openid-configuration"
-        oidc_config = requests.get(oauth_config_uri).json()
+        oidc_config = requests.get(oauth_config_uri, verify=self.verify).json()
         self._token_endpoint = oidc_config["token_endpoint"]
         logger.info("Configured token endpoint: %s", self._token_endpoint)
 
@@ -43,6 +44,7 @@ class Oauth2Manager:
             token_url=self._token_endpoint,
             client_id=self.client_id,
             client_secret=self.client_secret,
+            verify=self.verify,
         )
 
     def get_session(self) -> OAuth2Session:
@@ -56,7 +58,5 @@ def get_session_manager() -> Oauth2Manager:
     """Oauth2Manager cache."""
     settings = get_settings()
     return Oauth2Manager(
-        settings.client_id,
-        settings.client_secret,
-        settings.sso_issuer,
+        settings.client_id, settings.client_secret, settings.sso_issuer, settings.mock_sso
     )
