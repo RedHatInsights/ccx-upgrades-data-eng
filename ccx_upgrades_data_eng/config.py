@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     client_id: str
     client_secret: str
     sso_issuer: str = RH_OAUTH_ISSUER
+    allow_insecure: bool = False
 
     # Observatorium configuration
     rhobs_url: str = RHOBS_URL
