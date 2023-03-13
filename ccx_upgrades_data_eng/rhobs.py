@@ -47,7 +47,7 @@ def perform_rhobs_request(cluster_id: UUID) -> UpgradeRisksPredictors:
         f"{settings.rhobs_url}{rhobs_endpoint}",
         params={"query": query},
         timeout=settings.rhobs_request_timeout,
-        verify=not settings.mock_sso,
+        verify=not settings.allow_insecure,
     )
 
     if response.status_code == 404:
