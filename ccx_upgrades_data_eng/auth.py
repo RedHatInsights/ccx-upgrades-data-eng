@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 class Oauth2Manager:
     """Allows to keep track of the authentication token and refresh it when needed."""
 
-    def __init__(self, client_id: str, client_secret: str, issuer: str, allow_insecure: bool) -> None:
+    def __init__(
+        self, client_id: str, client_secret: str, issuer: str, allow_insecure: bool
+    ) -> None:
         """Initialize the Oauth2Manager with the given credentials."""
         self.client_id = client_id
         self.client_secret = client_secret
