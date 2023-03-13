@@ -19,7 +19,7 @@ The service will read the following environment variables:
 - `CLIENT_ID` (mandatory): The client identifier to get the refresh tokens from SSO server.
 - `CLIENT_SECRET` (mandatory): The client secret to get the refresh tokens from SSO server.
 - `SSO_ISSUER`: The SSO server that the service will use. By default, it uses https://sso.redhat.com/auth/realms/redhat-external.
-- `MOCK_SSO`: Whether you are using a mocked SSO server or not. If this variable is set to `True`, the SSL certificates signatures won't be checked. This is useful for locally and BDD testing.
+- `ALLOW_INSECURE`: If this variable is set to `True`, the SSL certificates signatures won't be checked. This is useful for locally and BDD testing or if you are using a mocked SSO server or not. 
 - `RHOBS_URL`: The URL of the Observatorium server. By default, it uses https://observatorium.api.stage.openshift.com.
 - `RHOBS_TENANT`: Name of the tenant to be used in the Observatorium endpoint generation. By default, `telemeter` will be used.
 - `RHOBS_REQUEST_TIMEOUT`: Number of seconds to use as timeout for the Observatorium requests. By default, it will use `None` (no timeout).

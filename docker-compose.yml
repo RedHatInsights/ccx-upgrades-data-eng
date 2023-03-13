@@ -9,7 +9,7 @@ services:
       - CLIENT_ID=test-id
       - CLIENT_SECRET=test-secret
       - SSO_ISSUER=http://mock-oauth2-server:8080/default
-      - MOCK_SSO=1
+      - ALLOW_INSECURE=1
       - RHOBS_URL=http://rhobs-mock:8080
       - OAUTHLIB_INSECURE_TRANSPORT=1
     depends_on:
