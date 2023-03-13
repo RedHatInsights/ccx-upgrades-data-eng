@@ -4,7 +4,11 @@ import requests
 from fastapi import HTTPException
 
 from ccx_upgrades_data_eng.config import get_settings
-from ccx_upgrades_data_eng.models import UpgradeApiResponse, UpgradeRisksPredictors
+from ccx_upgrades_data_eng.models import (
+    UpgradeApiResponse,
+    UpgradeRisksPredictors,
+    InferenceResponse,
+)
 
 
 def get_inference_for_predictors(risk_predictors: UpgradeRisksPredictors) -> UpgradeApiResponse:
@@ -17,4 +21,14 @@ def get_inference_for_predictors(risk_predictors: UpgradeRisksPredictors) -> Upg
     if inference_response.status_code != 200:
         raise HTTPException(status_code=inference_response.status_code)
 
-    return UpgradeApiResponse.parse_obj(inference_response.json())
+    inference_response = InferenceResponse.parse_obj(inference_response.json())
+    risks = inference_response.upgrade_risks_predictors
+
+    return UpgradeApiResponse(
+        upgrade_recommended=calculate_upgrade_recommended(risks), upgrade_risks_predictors=risks
+    )
+
+
+def calculate_upgrade_recommended(risks: UpgradeRisksPredictors) -> bool:
+    """If there are more than 0 risks predictors, return False."""
+    return len(risks.alerts + risks.operator_conditions) == 0
