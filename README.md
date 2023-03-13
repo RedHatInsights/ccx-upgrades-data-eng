@@ -19,10 +19,11 @@ The service will read the following environment variables:
 - `CLIENT_ID` (mandatory): The client identifier to get the refresh tokens from SSO server.
 - `CLIENT_SECRET` (mandatory): The client secret to get the refresh tokens from SSO server.
 - `SSO_ISSUER`: The SSO server that the service will use. By default, it uses https://sso.redhat.com/auth/realms/redhat-external.
+- `ALLOW_INSECURE`: If this variable is set to `True`, the SSL certificates signatures won't be checked. It is also needed to export `OAUTHLIB_INSECURE_TRANSPORT=1`. This is useful for locally and BDD testing or if you are using a mocked SSO server or not.
 - `RHOBS_URL`: The URL of the Observatorium server. By default, it uses https://observatorium.api.stage.openshift.com.
 - `RHOBS_TENANT`: Name of the tenant to be used in the Observatorium endpoint generation. By default, `telemeter` will be used.
 - `RHOBS_REQUEST_TIMEOUT`: Number of seconds to use as timeout for the Observatorium requests. By default, it will use `None` (no timeout).
-
+- `INFERENCE_URL`: URL of the inference service.
 ### Logging configuration
 
 `uvicorn` allows to pass a [Python logging configuration](https://docs.python.org/3/library/logging.config.html#logging-config-fileformat)
@@ -45,6 +46,9 @@ Change to the source folder and run the app using `uvicorn`:
 CLIENT_ID=the-client-id CLIENT_SECRET=the-secret uvicorn ccx_upgrades_data_eng.main:app --reload
 ```
 
+Note that this command requires valid credentials. If you want to run it against
+mocked service, please check how it's done in the [docker-compose.yml](docker-compose.yml).
+
 Then run some requests against the server:
 
 ```
@@ -52,6 +56,12 @@ curl 'http://127.0.0.1:8000/cluster/34c3ecc5-624a-49a5-bab8-4fdc5e51a266/upgrade
 ```
 
 Check the API documentation at http://127.0.0.1:8000/docs or http://127.0.0.1:8000/redoc.
+
+### Run in docker-compose
+
+Just run `docker-compose up`. Please, check the environment variables defined in
+the `ccx-upgrades-data-eng` service to learn more about how it is configured to
+use mocked services.
 
 ### Run in an ephemeral environment
 
