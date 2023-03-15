@@ -21,14 +21,17 @@ app = FastAPI()
 @app.on_event("startup")
 async def expose_metrics():
     """Expose the prometheus metrics in the /metrics endpoint."""
-    logger.info("Metrics available at /metrics")
+    logger.debug("Exposing metrics")
     Instrumentator().instrument(app).expose(app)
+    logger.info("Metrics available at /metrics")
 
 
 @app.on_event("startup")
 def init_session_manager() -> None:
     """Force Oauth2Manager to refresh its token periodically."""
+    logger.debug("Initializing the session manager")
     session_manager = get_session_manager()
+    logger.debug("Refreshing the token")
     session_manager.refresh_token()
 
 
@@ -36,7 +39,9 @@ def init_session_manager() -> None:
 @repeat_every(seconds=360)  # repeat every 6 minutes, default expires_at is 900
 def refresh_sso_token() -> None:
     """Refresh the token every 6 minutes."""
+    logger.debug("Getting session manager")
     session_manager = get_session_manager()
+    logger.debug("Refreshing the token")
     session_manager.refresh_token()
 
 
@@ -45,7 +50,10 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     """Return the predition of an upgrade failure given a set of alerts and focs."""
     logger.info(f"Received cluster: {cluster_id}")
 
+    logger.debug("Getting predictors from RHOBS")
     predictors = perform_rhobs_request(cluster_id)
+    logger.debug("Getting inference result")
     inference_result = get_inference_for_predictors(predictors)
+    logger.debug("Inference result is: ", inference_result)
 
     return inference_result

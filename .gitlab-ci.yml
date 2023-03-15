@@ -42,3 +42,28 @@ coverage-checking:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   allow_failure: true
+
+bdd-tests:
+  stage: test
+  image: quay.io/ccxdev/insights-behavioral-spec:ci
+  variables:
+    PATH_TO_LOCAL_DATA_ENG_SERVICE: "$CI_PROJECT_DIR"
+    BDD_PATH: /insights-behavioral-spec
+    VIRTUAL_ENV: /insights-behavioral-spec-venv/
+    WITHMOCK: "1"
+  script:
+    - cd $BDD_PATH
+    - make data-engineering-service-tests
+  after_script:
+    - cp -r "$BDD_PATH/logs/ccx-upgrades-data-eng" "$CI_PROJECT_DIR/logs"
+  artifacts:
+    untracked: true
+    when: on_failure
+    paths:
+      - ./logs
+    expire_in: 1 week
+  services:
+    - name: ghcr.io/navikt/mock-oauth2-server:0.5.8
+      alias: mock-oauth2-server
+      variables:
+        PORT: 8081
