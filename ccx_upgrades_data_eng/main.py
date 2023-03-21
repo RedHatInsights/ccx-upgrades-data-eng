@@ -3,10 +3,10 @@
 import logging
 from uuid import UUID
 
-from fastapi import Depends, FastAPI
-from fastapi_utils.tasks import repeat_every
+from fastapi import Depends, FastAPI, Request, status
+from fastapi.responses import JSONResponse
 
-from ccx_upgrades_data_eng.auth import get_session_manager
+from ccx_upgrades_data_eng.auth import get_session_manager, SessionManagerException, TokenException
 from ccx_upgrades_data_eng.config import get_settings, Settings
 from ccx_upgrades_data_eng.inference import get_inference_for_predictors
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
@@ -26,23 +26,24 @@ async def expose_metrics():
     logger.info("Metrics available at /metrics")
 
 
-@app.on_event("startup")
-def init_session_manager() -> None:
-    """Force Oauth2Manager to refresh its token periodically."""
-    logger.debug("Initializing the session manager")
-    session_manager = get_session_manager()
-    logger.debug("Refreshing the token")
-    session_manager.refresh_token()
-
-
-@app.on_event("startup")
-@repeat_every(seconds=360)  # repeat every 6 minutes, default expires_at is 900
-def refresh_sso_token() -> None:
-    """Refresh the token every 6 minutes."""
-    logger.debug("Getting session manager")
-    session_manager = get_session_manager()
-    logger.debug("Refreshing the token")
-    session_manager.refresh_token()
+@app.middleware("http")  # Check if it needs to be refreshed in each request
+# @repeat_every(seconds=360)  # Refresh the, default expires_at is 9 min
+async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
+    """Initialize the session manager (if needed) and refresh the token (if needed)."""
+    try:
+        # this is cached (if initialized correctly before) so it will be
+        # initialized just once
+        session_manager = get_session_manager()
+        session_manager.refresh_token()
+    except SessionManagerException:
+        return JSONResponse(
+            "Unable to initialize SSO session", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+    except TokenException:
+        return JSONResponse(
+            "Unable to update SSO token", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+    return await call_next(request)
 
 
 @app.get("/cluster/{cluster_id}/upgrade-risks-prediction", response_model=UpgradeApiResponse)
