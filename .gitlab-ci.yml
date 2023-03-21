@@ -67,3 +67,6 @@ bdd-tests:
       alias: mock-oauth2-server
       variables:
         PORT: 8081
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
