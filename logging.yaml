@@ -25,7 +25,7 @@ handlers:
     stream: ext://sys.stdout
 loggers:
   ccx_upgrades_data_eng:
-    level: DEBUG
+    level: INFO
     handlers: [default]
     propagate: no
   uvicorn:
