@@ -35,11 +35,13 @@ async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
         # initialized just once
         session_manager = get_session_manager()
         session_manager.refresh_token()
-    except SessionManagerException:
+    except SessionManagerException as ex:
+        logger.debug("Unable to initialize SSO session: %s", ex)
         return JSONResponse(
             "Unable to initialize SSO session", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
         )
-    except TokenException:
+    except TokenException as ex:
+        logger.debug("Unable to update SSO token: %s", ex)
         return JSONResponse(
             "Unable to update SSO token", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
         )
@@ -55,6 +57,6 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     predictors = perform_rhobs_request(cluster_id)
     logger.debug("Getting inference result")
     inference_result = get_inference_for_predictors(predictors)
-    logger.debug("Inference result is: ", inference_result)
+    logger.debug("Inference result is: %s", inference_result)
 
     return inference_result
