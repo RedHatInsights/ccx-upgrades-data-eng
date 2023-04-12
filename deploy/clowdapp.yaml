@@ -93,67 +93,7 @@ objects:
               value: ${OBSERVATORIUM_TENANT}
             - name: INFERENCE_URL
               value: ${INFERENCE_SERVICE_URL}
-          volumeMounts:
-          - name: config
-            mountPath: "/ccx-upgrades-data-eng/logging.yaml"
-            subPath: "logging.yaml"
-            readOnly: true
-          volumes:
-          - name: config
-            configMap:
-              name: logging-config
 
-- kind: ConfigMap
-  apiVersion: v1
-  metadata:
-    name: logging-config
-    labels:
-      app: insights-content-template-renderer
-  data:
-    config.yml: |
-      version: 1
-      formatters:
-        simple:
-          format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        default:
-          (): uvicorn.logging.DefaultFormatter
-          fmt: '%(levelprefix)s %(message)s'
-          use_colors: None
-        access:
-          (): uvicorn.logging.AccessFormatter
-          fmt: '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
-      handlers:
-        console:
-          class: logging.StreamHandler
-          level: "${LOG_LEVEL}"
-          formatter: simple
-          stream: ext://sys.stdout
-        default:
-          formatter: default
-          class: logging.StreamHandler
-          stream: ext://sys.stderr
-        access:
-          formatter: access
-          class: logging.StreamHandler
-          stream: ext://sys.stdout
-      loggers:
-        ccx_upgrades_data_eng:
-          level: "${LOG_LEVEL}"
-          handlers: [default]
-          propagate: no
-        uvicorn:
-          handlers: [default]
-          level: "${LOG_LEVEL}"
-          propagate: no
-        uvicorn.error:
-          level: "${LOG_LEVEL}"
-        uvicorn.access:
-          handlers: [access]
-          level: "${LOG_LEVEL}"
-          propagate: no
-      root:
-        level: "${LOG_LEVEL}"
-        handlers: [default]
 
 - kind: Service
   apiVersion: v1
@@ -193,9 +133,6 @@ parameters:
 - description: ClowdEnv Name
   name: ENV_NAME
   required: true
-- description: Logging level
-  name: LOG_LEVEL
-  value: INFO
 
 - description: RH Observatorium Base URL
   name: RHOBS_URL
