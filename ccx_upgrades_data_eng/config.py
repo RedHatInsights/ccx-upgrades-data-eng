@@ -39,8 +39,5 @@ def get_settings() -> Settings:
         return Settings()
     except ValidationError as exc:
         args = [arg.loc_tuple()[0] for arg in exc.args[0]]
-        logger.fatal(
-            "Cannot read expected environment variables: %s",
-            args,
-        )
+        logger.fatal("Cannot read expected environment variables: %s", args)
         raise exc
