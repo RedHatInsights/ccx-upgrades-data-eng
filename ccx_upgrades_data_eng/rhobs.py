@@ -51,9 +51,12 @@ def perform_rhobs_request(cluster_id: UUID) -> UpgradeRisksPredictors:
     )
 
     if response.status_code == 404:
+        logger.debug(f'cluster "{cluster_id}" not found in Observatorium')
         raise HTTPException(status_code=404, detail="Cluster not found")
 
     elif response.status_code != 200:
+        logger.debug("Observatorium response status code:", response.status_code)
+        logger.debug("Observatorium response text:", response.text)
         raise HTTPException(status_code=response.status_code)
 
     results = response.json().get("data", dict()).get("result", list())
