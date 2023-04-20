@@ -10,7 +10,10 @@ customers' clusters) in order to get the latest metrics for a given cluster
 ([CCXDEV-9850](https://issues.redhat.com/browse/CCXDEV-9850)).
 1. Apply a ML model (running in [ccx-upgrades-inference](https://redhat.com/ccx-inference-service))
 to select the metrics that are more likely to affect the cluster upgrade.
-1. Format the results and return them to the user.
+1. Format the results and return them to the user. This includes generating a
+URL for each alert and operator condition based on the console URL. The console
+URL is fetched from RHOBS too. In case this console URL cannot be fetched, we
+assume the cluster has no recent data and return a 404.
 
 ## Configuration
 

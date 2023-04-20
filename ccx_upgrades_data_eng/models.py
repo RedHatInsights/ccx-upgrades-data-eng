@@ -3,7 +3,12 @@
 from typing import Any, List, Optional, Type
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 
-from ccx_upgrades_data_eng.examples import EXAMPLE_ALERT, EXAMPLE_FOC, EXAMPLE_PREDICTORS
+from ccx_upgrades_data_eng.examples import (
+    EXAMPLE_ALERT,
+    EXAMPLE_FOC,
+    EXAMPLE_PREDICTORS,
+    EXAMPLE_PREDICTORS_WITH_URL,
+)
 
 
 class Alert(BaseModel):  # pylint: disable=too-few-public-methods
@@ -62,7 +67,26 @@ class InferenceResponse(BaseModel):
         }
 
 
-class UpgradeApiResponse(InferenceResponse):  # pylint: disable=too-few-public-methods
+class AlertWithURL(Alert):
+    """An alert filled with its link to console url."""
+
+    url: str = ""
+
+
+class FOCWithURL(FOC):
+    """An Failing Operator Condition filled with its link to console url."""
+
+    url: str = ""
+
+
+class UpgradeRisksPredictorsWithURLs(BaseModel):
+    """A dict containing list of alerts and FOCs."""
+
+    alerts: List[AlertWithURL]
+    operator_conditions: List[FOCWithURL]
+
+
+class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
     """
     UpgradeApiResponse is the response for the upgrade-risks-prediction endpoint.
 
@@ -71,6 +95,7 @@ class UpgradeApiResponse(InferenceResponse):  # pylint: disable=too-few-public-m
     """
 
     upgrade_recommended: bool
+    upgrade_risks_predictors: UpgradeRisksPredictorsWithURLs
 
     class Config:  # pylint: disable=too-few-public-methods
         """Update the configuration with an example."""
@@ -78,6 +103,6 @@ class UpgradeApiResponse(InferenceResponse):  # pylint: disable=too-few-public-m
         schema_extra = {
             "example": {
                 "upgrade_recommended": False,
-                "upgrade_risks_predictors": EXAMPLE_PREDICTORS,
+                "upgrade_risks_predictors": EXAMPLE_PREDICTORS_WITH_URL,
             }
         }
