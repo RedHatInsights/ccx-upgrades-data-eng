@@ -10,6 +10,7 @@ from ccx_upgrades_data_eng.auth import get_session_manager, SessionManagerExcept
 from ccx_upgrades_data_eng.config import get_settings, Settings
 from ccx_upgrades_data_eng.inference import get_inference_for_predictors
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
+from ccx_upgrades_data_eng.urls import fill_urls
 from ccx_upgrades_data_eng.rhobs import perform_rhobs_request
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -54,9 +55,14 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     logger.info(f"Received cluster: {cluster_id}")
 
     logger.debug("Getting predictors from RHOBS")
-    predictors = perform_rhobs_request(cluster_id)
+    predictors, console_url = perform_rhobs_request(cluster_id)
+    if console_url == "":
+        return JSONResponse("No data for this cluster", status_code=status.HTTP_404_NOT_FOUND)
+
     logger.debug("Getting inference result")
     inference_result = get_inference_for_predictors(predictors)
     logger.debug("Inference result is: %s", inference_result)
+    logger.debug("Filling alerts and focs with the console url")
+    fill_urls(inference_result, console_url)
 
     return inference_result
