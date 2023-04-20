@@ -10,7 +10,7 @@ from ccx_upgrades_data_eng.inference import (
     get_inference_for_predictors,
     calculate_upgrade_recommended,
 )
-from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS
+from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS, EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 from ccx_upgrades_data_eng.models import UpgradeRisksPredictors, FOC
 from ccx_upgrades_data_eng.tests import needed_env
 
@@ -75,7 +75,7 @@ def test_get_inference_for_predictors_inference_ok_full(get_mock):
     response = get_inference_for_predictors(risk_predictors)
     assert not response.upgrade_recommended
     # With an empty risk prediction, the response should be always the same
-    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS
+    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 
 
 def test_calculate_upgrade_recommended_0_predictors():

@@ -103,7 +103,7 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         )
 
         # Prepare the mocks
-        perform_rhobs_request_mock.return_value = risk_predictors
+        perform_rhobs_request_mock.return_value = risk_predictors, "https://console_url.com"
         get_inference_for_predictors_mock.return_value = UpgradeApiResponse(
             upgrade_recommended=True,
             upgrade_risks_predictors=risk_predictors,
@@ -121,6 +121,33 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
             "alerts": [],
             "operator_conditions": [],
         }
+
+    @patch("ccx_upgrades_data_eng.main.get_inference_for_predictors")
+    @patch("ccx_upgrades_data_eng.main.perform_rhobs_request")
+    def test_valid_parameter_rhobs_no_cluster_version(
+        self,
+        perform_rhobs_request_mock,
+        get_inference_for_predictors_mock,
+        get_session_manager_mock,
+    ):
+        """If the request has a valid cluster_id it should work."""
+        session_manager_mock = MagicMock()
+        get_session_manager_mock.return_value = session_manager_mock
+        risk_predictors = UpgradeRisksPredictors(
+            alerts=[],
+            operator_conditions=[],
+        )
+
+        # Prepare the mocks
+        perform_rhobs_request_mock.return_value = risk_predictors, ""  # return an empty cluster_url
+
+        cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+        response = client.get(f"/cluster/{cluster_id}/upgrade-risks-prediction")
+
+        assert perform_rhobs_request_mock.called
+        assert not get_inference_for_predictors_mock.called
+        assert response.status_code == 404
+        assert "No data" in response.text
 
 
 async def mock_call_next(request: Request):

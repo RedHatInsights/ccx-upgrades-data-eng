@@ -1,7 +1,7 @@
 """Functions for generating the RHOBS queries needed by the service."""
 
 import logging
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -25,7 +25,9 @@ def alerts_and_focs(cluster_ids: List[str]) -> str:
 
     for cluster_id in cluster_ids:
         queries.append(
-            f"""alerts{{_id="{cluster_id}", namespace=~"openshift-.*", severity=~"warning|critical"}}
+            f"""console_url{{_id="{cluster_id}"}}
+or
+alerts{{_id="{cluster_id}", namespace=~"openshift-.*", severity=~"warning|critical"}}
 or
 cluster_operator_conditions{{_id="{cluster_id}", condition="Available"}} == 0
 or
@@ -35,8 +37,12 @@ cluster_operator_conditions{{_id="{cluster_id}", condition="Degraded"}} == 1"""
     return "\nor\n".join(queries)
 
 
-def perform_rhobs_request(cluster_id: UUID) -> UpgradeRisksPredictors:
-    """Run the requests to RHOBS server and return the retrieved predictors."""
+def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str]:
+    """
+    Run the requests to RHOBS server and return the retrieved predictors.
+
+    Also return the console url.
+    """
     settings = get_settings()
     session = get_session_manager().get_session()
 
@@ -69,13 +75,20 @@ def perform_rhobs_request(cluster_id: UUID) -> UpgradeRisksPredictors:
     alerts = list()
     focs = list()
 
+    console_url = ""
+
     for result in results:
         metric = result.get("metric")
         if not metric:
             logger.debug("result received with no metric: %s", result)
             continue
 
-        if metric["__name__"] == "alerts":
+        if metric["__name__"] == "console_url":
+            if "url" not in metric.keys():
+                continue
+            console_url = metric["url"]
+
+        elif metric["__name__"] == "alerts":
             alerts.append(Alert.parse_metric(metric))
 
         elif metric["__name__"] == "cluster_operator_conditions":
@@ -84,4 +97,4 @@ def perform_rhobs_request(cluster_id: UUID) -> UpgradeRisksPredictors:
         else:
             logger.debug("received a metric from unexpected type: %s", metric["__name__"])
 
-    return UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs)
+    return UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs), console_url
