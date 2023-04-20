@@ -4,7 +4,7 @@ import pydantic
 import pytest
 
 from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeApiResponse, InferenceResponse
-from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS
+from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS, EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 
 
 GOOD_ALERTS = [
@@ -240,7 +240,7 @@ def test_upgrade_api_response():
     response = UpgradeApiResponse(
         upgrade_recommended=False, upgrade_risks_predictors=EXAMPLE_PREDICTORS
     )
-    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS
+    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 
 
 def test_inference_response():
