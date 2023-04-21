@@ -93,6 +93,8 @@ objects:
               value: ${OBSERVATORIUM_TENANT}
             - name: INFERENCE_URL
               value: ${INFERENCE_SERVICE_URL}
+            - name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
+              value: ${RHOBS_QUERY_MAX_MINUTES_FOR_DATA}
           volumeMounts:
           - name: config
             mountPath: "/ccx-upgrades-data-eng/logging.yaml"
@@ -209,3 +211,6 @@ parameters:
 - description: URL to the Upgrade Risks Prediction Inference service
   name: INFERENCE_SERVICE_URL
   value: http://ccx-upgrades-inference-svc:8000
+- description: The number of minutes to consider the data obsolete
+  name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
+  value: 60
