@@ -3,6 +3,7 @@
 import logging
 from typing import List, Tuple
 from uuid import UUID
+from datetime import datetime, timedelta
 
 from fastapi import HTTPException
 
@@ -51,7 +52,10 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
 
     response = session.get(
         f"{settings.rhobs_url}{rhobs_endpoint}",
-        params={"query": query},
+        params={
+            "query": query,
+            "time": get_timestamp_minutes_before(settings.rhobs_query_max_minutes_for_data),
+        },
         timeout=settings.rhobs_request_timeout,
         verify=not settings.allow_insecure,
     )
@@ -98,3 +102,9 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
             logger.debug("received a metric from unexpected type: %s", metric["__name__"])
 
     return UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs), console_url
+
+
+def get_timestamp_minutes_before(minutes):
+    """Return the timestamp $hours_before."""
+    d = datetime.now() - timedelta(minutes=minutes)
+    return d.timestamp()
