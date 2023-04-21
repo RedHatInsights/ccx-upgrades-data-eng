@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     rhobs_url: str = RHOBS_URL
     rhobs_tenant: str = RHOBS_DEFAULT_TENANT
     rhobs_request_timeout: float = None
+    rhobs_query_max_minutes_for_data: int = 60
 
     # Inference service configuration
     inference_url: str
