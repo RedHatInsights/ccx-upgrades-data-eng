@@ -27,6 +27,7 @@ The service will read the following environment variables:
 - `RHOBS_TENANT`: Name of the tenant to be used in the Observatorium endpoint generation. By default, `telemeter` will be used.
 - `RHOBS_REQUEST_TIMEOUT`: Number of seconds to use as timeout for the Observatorium requests. By default, it will use `None` (no timeout).
 - `INFERENCE_URL`: URL of the inference service.
+- `RHOBS_QUERY_MAX_MINUTES_FOR_DATA`: if the data is older than this value, the cluster is considered disconnected.
 ### Logging configuration
 
 `uvicorn` allows to pass a [Python logging configuration](https://docs.python.org/3/library/logging.config.html#logging-config-fileformat)
