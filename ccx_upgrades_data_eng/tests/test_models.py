@@ -225,10 +225,10 @@ def test_foc():
 def test_parse_metric_to_foc(result_item):
     """Test the foc can be created from a metric obtained from Observatorum."""
     metric = result_item["metric"]
-    foc = FOC.parse_obj(metric)
+    foc = FOC.parse_metric(metric)
 
     assert foc.name == metric.get("name")
-    assert foc.condition == metric.get("condition")
+    assert foc.condition == "Not Available"
     assert foc.reason == metric.get("reason")
 
 
@@ -238,7 +238,7 @@ def test_parse_bad_metric_to_foc(result_item):
     metric = result_item["metric"]
 
     with pytest.raises(pydantic.ValidationError):
-        FOC.parse_obj(metric)
+        FOC.parse_metric(metric)
 
 
 def test_upgrade_risk_predictors():
