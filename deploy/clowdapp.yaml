@@ -213,4 +213,4 @@ parameters:
   value: http://ccx-upgrades-inference-svc:8000
 - description: The number of minutes to consider the data obsolete
   name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
-  value: 60
+  value: '60'
