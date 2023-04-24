@@ -3,7 +3,13 @@
 import pydantic
 import pytest
 
-from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeApiResponse, InferenceResponse
+from ccx_upgrades_data_eng.models import (
+    Alert,
+    FOC,
+    UpgradeApiResponse,
+    InferenceResponse,
+    UpgradeRisksPredictors,
+)
 from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS, EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 
 
@@ -233,6 +239,25 @@ def test_parse_bad_metric_to_foc(result_item):
 
     with pytest.raises(pydantic.ValidationError):
         FOC.parse_obj(metric)
+
+
+def test_upgrade_risk_predictors():
+    """Test the UpgradeRisksPredictors can be created and fields deduplicated."""
+    predictors = UpgradeRisksPredictors(
+        alerts=[
+            Alert(name="test", namespace="test", severity="test"),
+            Alert(name="test", namespace="test", severity="test"),
+        ],
+        operator_conditions=[
+            FOC(name="test", condition="test", reason="test"),
+            FOC(name="test", condition="test", reason="test"),
+        ],
+    )
+    assert len(predictors.alerts) == 2
+    assert len(predictors.operator_conditions) == 2
+    predictors.remove_duplicates()
+    assert len(predictors.alerts) == 1
+    assert len(predictors.operator_conditions) == 1
 
 
 def test_upgrade_api_response():
