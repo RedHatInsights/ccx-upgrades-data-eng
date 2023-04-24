@@ -205,7 +205,7 @@ def test_perform_rhobs_request(get_session_manager_mock):
     assert predictors.alerts[0].namespace == "openshift-kube-apiserver"
     assert predictors.alerts[0].severity == "info"
     assert predictors.operator_conditions[0].name == "authentication"
-    assert predictors.operator_conditions[0].condition == "Available"
+    assert predictors.operator_conditions[0].condition == "Not Available"
     assert (
         predictors.operator_conditions[0].reason
         == "OAuthServerRouteEndpointAccessibleController_EndpointUnavailable"
