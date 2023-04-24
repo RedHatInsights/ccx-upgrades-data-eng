@@ -31,6 +31,18 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
 
         return Alert.parse_obj(obj)
 
+    def __eq__(self, other):
+        """Needed in order to remove duplicates from a list of alerts."""
+        return (
+            self.name == other.name
+            and self.namespace == other.namespace
+            and self.severity == other.severity
+        )
+
+    def __hash__(self):
+        """Needed in order to remove duplicates from a list of focs."""
+        return hash(("name", self.name, "namespace", self.namespace, "severity", self.severity))
+
 
 class FOC(BaseModel):  # pylint: disable=too-few-public-methods
     """Failing Operator Condition containing name, condition and reason."""
@@ -44,12 +56,29 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
 
         schema_extra = {"example": {"foc": EXAMPLE_FOC}}
 
+    def __eq__(self, other):
+        """Needed in order to remove duplicates from a list of focs."""
+        return (
+            self.name == other.name
+            and self.condition == other.condition
+            and self.reason == other.reason
+        )
+
+    def __hash__(self):
+        """Needed in order to remove duplicates from a list of focs."""
+        return hash(("name", self.name, "condition", self.condition, "reason", self.reason))
+
 
 class UpgradeRisksPredictors(BaseModel):
     """A dict containing list of alerts and FOCs."""
 
     alerts: List[Alert]
     operator_conditions: List[FOC]
+
+    def remove_duplicates(self):
+        """Remove the duplicates from the alerts and focs."""
+        self.alerts = list(set(self.alerts))
+        self.operator_conditions = list(set(self.operator_conditions))
 
 
 class InferenceResponse(BaseModel):
