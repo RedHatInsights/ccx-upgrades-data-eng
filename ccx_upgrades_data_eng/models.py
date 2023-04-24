@@ -26,6 +26,7 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
     @classmethod
     def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
         """Wrap the parsing of an Observatorium metric object and return an Alert"""
+        obj = obj.copy()  # dont modify the original obj
         if "alertname" in obj:
             obj["name"] = obj["alertname"]
 
@@ -55,6 +56,19 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
         """Update the configuration with an example."""
 
         schema_extra = {"example": {"foc": EXAMPLE_FOC}}
+
+    @classmethod
+    def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
+        """Wrap the parsing of an Observatorium metric object and return a FOC"""
+        obj = obj.copy()  # dont modify the original obj
+        if "condition" in obj:
+            if obj["condition"] == "Available":
+                # because the rhobs query looks for
+                # cluster_operator_conditions{{condition="Available"}} == 0
+                # it is needed to update the condition to match
+                obj["condition"] = "Not Available"
+
+        return FOC.parse_obj(obj)
 
     def __eq__(self, other):
         """Needed in order to remove duplicates from a list of focs."""

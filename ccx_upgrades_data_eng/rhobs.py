@@ -96,7 +96,7 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
             alerts.append(Alert.parse_metric(metric))
 
         elif metric["__name__"] == "cluster_operator_conditions":
-            focs.append(FOC.parse_obj(metric))
+            focs.append(FOC.parse_metric(metric))
 
         else:
             logger.debug("received a metric from unexpected type: %s", metric["__name__"])
