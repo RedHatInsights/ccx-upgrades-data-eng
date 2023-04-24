@@ -101,7 +101,17 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
         else:
             logger.debug("received a metric from unexpected type: %s", metric["__name__"])
 
-    return UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs), console_url
+    predictors = UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs)
+
+    logger.debug(
+        f"Before removing duplicates: {len(predictors.alerts)} alerts and {len(predictors.operator_conditions)} for cluster {cluster_id}"
+    )
+    predictors.remove_duplicates()
+    logger.debug(
+        f"After removing duplicates: {len(predictors.alerts)} alerts and {len(predictors.operator_conditions)} for cluster {cluster_id}"
+    )
+
+    return predictors, console_url
 
 
 def get_timestamp_minutes_before(minutes):
