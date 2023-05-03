@@ -42,7 +42,7 @@ class Oauth2Manager:
             oidc_config = requests.get(oauth_config_uri, verify=self.verify).json()
         except Exception as ex:
             raise SessionManagerException(
-                "Error getting the oauth config from the SSO server"
+                f"Error getting the oauth config from the SSO server:\n{ex}"
             ) from ex
 
         self._token_endpoint = oidc_config["token_endpoint"]
@@ -68,7 +68,7 @@ class Oauth2Manager:
                 verify=self.verify,
             )
         except Exception as ex:
-            raise TokenException("Error refreshing the token") from ex
+            raise TokenException(f"Error refreshing the token:\n{ex}") from ex
 
     def get_session(self) -> OAuth2Session:
         """Return the OauthSession2 after refreshing the auth token."""
