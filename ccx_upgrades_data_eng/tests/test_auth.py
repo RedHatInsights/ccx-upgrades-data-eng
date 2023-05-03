@@ -4,6 +4,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 from ccx_upgrades_data_eng.auth import get_session_manager
+from ccx_upgrades_data_eng.config import get_settings
 from ccx_upgrades_data_eng.tests import needed_env
 
 
@@ -29,3 +30,56 @@ def test_refresh_token_new(session_init_mock):
     session_manager.refresh_token()
 
     assert session_mock.fetch_token.called
+
+
+@patch.dict(
+    os.environ,
+    {
+        "CLIENT_ID": "client-id",
+        "CLIENT_SECRET": "secret",
+        "INFERENCE_URL": "http://inference:8000",
+    },
+)
+def test_allow_insecure_empty_allow_insecure():
+    """Check that if ALLOW_INSECURE env var is empty, the verify is True."""
+    get_settings.cache_clear()
+    get_session_manager.cache_clear()  # skip cache from other tests
+
+    session_manager = get_session_manager()
+    assert session_manager.verify
+
+
+@patch.dict(
+    os.environ,
+    {
+        "CLIENT_ID": "client-id",
+        "CLIENT_SECRET": "secret",
+        "INFERENCE_URL": "http://inference:8000",
+        "ALLOW_INSECURE": "True",
+    },
+)
+def test_allow_insecure_with_allow_insecure():
+    """Check that if ALLOW_INSECURE env var is True, the verify is False."""
+    get_settings.cache_clear()
+    get_session_manager.cache_clear()  # skip cache from other tests
+
+    session_manager = get_session_manager()
+    assert not session_manager.verify
+
+
+@patch.dict(
+    os.environ,
+    {
+        "CLIENT_ID": "client-id",
+        "CLIENT_SECRET": "secret",
+        "INFERENCE_URL": "http://inference:8000",
+        "ALLOW_INSECURE": "0",
+    },
+)
+def test_allow_insecure_0_allow_insecure():
+    """Check that if ALLOW_INSECURE env var is 0, the verify is True."""
+    get_settings.cache_clear()
+    get_session_manager.cache_clear()  # skip cache from other tests
+
+    session_manager = get_session_manager()
+    assert session_manager.verify

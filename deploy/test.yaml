@@ -33,3 +33,13 @@ apps:
         ENV_NAME: env-ocm
         IMAGE_TAG: latest
         LOG_LEVEL: DEBUG
+        RH_SSO_URL: http://sso-mock-svc:8080/default
+        ALLOW_INSECURE: 'True'
+    - name:  sso-mock
+      host: local
+      repo: .
+      path: deploy/sso-mock.yaml
+      parameters:
+        ENV_NAME: env-ocm
+        LOG_LEVEL: DEBUG
+        IMAGE_TAG: '0.5.8'
