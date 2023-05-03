@@ -37,12 +37,12 @@ async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
         session_manager = get_session_manager()
         session_manager.refresh_token()
     except SessionManagerException as ex:
-        logger.debug("Unable to initialize SSO session: %s", ex)
+        logger.error("Unable to initialize SSO session: %s", ex)
         return JSONResponse(
             "Unable to initialize SSO session", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
         )
     except TokenException as ex:
-        logger.debug("Unable to update SSO token: %s", ex)
+        logger.error("Unable to update SSO token: %s", ex)
         return JSONResponse(
             "Unable to update SSO token", status_code=status.HTTP_503_SERVICE_UNAVAILABLE
         )
