@@ -35,6 +35,6 @@ services:
     # git clone git@gitlab.cee.redhat.com:ccx/rhobs-mock.git
     # cd rhobs-mock
     # docker build -t rhobs-mock .
-    image: rhobs-mock
+    image: quay.io/cloudservices/rhobs-mock
     ports:
       - 8081:8080

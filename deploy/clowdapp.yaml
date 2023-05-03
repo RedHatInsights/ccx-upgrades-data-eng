@@ -95,6 +95,13 @@ objects:
               value: ${INFERENCE_SERVICE_URL}
             - name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
               value: ${RHOBS_QUERY_MAX_MINUTES_FOR_DATA}
+
+            # Just for ephemeral testing
+            - name: ALLOW_INSECURE
+              value: ${ALLOW_INSECURE}
+            - name: OAUTHLIB_INSECURE_TRANSPORT
+              value: ${ALLOW_INSECURE}
+
           volumeMounts:
           - name: config
             mountPath: "/ccx-upgrades-data-eng/logging.yaml"
@@ -214,3 +221,8 @@ parameters:
 - description: The number of minutes to consider the data obsolete
   name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
   value: '60'
+
+- description: Allow an insecure SSO url. This is intended just for ephemeral
+  name: ALLOW_INSECURE
+  # Can be any of True and 1 are set to True; False,0 and empty are set to False
+  value: ''

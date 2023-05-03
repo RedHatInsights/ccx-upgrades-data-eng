@@ -1,0 +1,108 @@
+# Copyright 2023 Red Hat, Inc
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: sso-mock
+  labels:
+    app: sso-mock
+objects:
+
+- apiVersion: cloud.redhat.com/v1alpha1
+  kind: ClowdApp
+  metadata:
+    name: sso-mock
+    labels:
+      app: sso-mock
+    annotations:
+      ignore-check.kube-linter.io/minimum-three-replicas: "This app is used just for testing"
+  spec:
+    envName: ${ENV_NAME}
+    deployments:
+      - name: instance
+        replicas: ${{REPLICAS}}
+        webServices:
+          public:
+            enabled: false
+          private:
+            enabled: true
+          metrics:
+            enabled: true
+        podSpec:
+          image: ${IMAGE}:${IMAGE_TAG}
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /isalive
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 2
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /isalive
+              port: 8080
+              scheme: HTTP
+          resources:
+            limits:
+              cpu: 50m
+              memory: 400Mi
+            requests:
+              cpu: 10m
+              memory: 250Mi
+          env:
+            - name: LOG_LEVEL
+              value: ${LOG_LEVEL}
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: sso-mock-svc
+    labels:
+      app: sso-mock
+  spec:
+    ports:
+      - name: web
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+    selector:
+      app: sso-mock
+    type: ClusterIP
+
+parameters:
+- description: Image name
+  name: IMAGE
+  # This image is pulled from ghcr.io/navikt/mock-oauth2-server and pushed to
+  # quay so that we don't exhaust GH's pull limits. If you need to update the
+  # image, just pull a newer version and push to quay. The update $IMAGE_TAG.
+  value: quay.io/ccxdev/mock-oauth2-server
+- description: Image tag
+  name: IMAGE_TAG
+  value: '0.5.8'
+- description: Desired number of pods
+  name: REPLICAS
+  value: '1'
+- description: ClowdEnv Name
+  name: ENV_NAME
+  required: true
+- description: Logging level
+  name: LOG_LEVEL
+  value: DEBUG
