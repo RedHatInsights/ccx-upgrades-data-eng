@@ -42,7 +42,7 @@ objects:
           metrics:
             enabled: true
         podSpec:
-          image: ${IMAGE}:${IMAGE_TAG}
+          image: ${IMAGE}
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
@@ -88,15 +88,12 @@ objects:
     type: ClusterIP
 
 parameters:
-- description: Image name
+- description: Image
   name: IMAGE
   # This image is pulled from ghcr.io/navikt/mock-oauth2-server and pushed to
   # quay so that we don't exhaust GH's pull limits. If you need to update the
-  # image, just pull a newer version and push to quay. The update $IMAGE_TAG.
-  value: quay.io/ccxdev/mock-oauth2-server
-- description: Image tag
-  name: IMAGE_TAG
-  value: '0.5.8'
+  # image, just pull a newer version and push to quay. Then modify this var
+  value: 'quay.io/ccxdev/mock-oauth2-server:0.5.8'
 - description: Desired number of pods
   name: REPLICAS
   value: '1'
