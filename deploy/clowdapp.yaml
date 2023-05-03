@@ -224,5 +224,5 @@ parameters:
 
 - description: Allow an insecure SSO url. This is intended just for ephemeral
   name: ALLOW_INSECURE
-  # Can be any of True and 1 are set to True; False,0 and empty are set to False
-  value: ''
+  # Can be any of True and 1 are set to True; False and 0 are set to False
+  value: 'False'
