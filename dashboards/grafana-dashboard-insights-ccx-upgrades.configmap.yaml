@@ -1074,6 +1074,7 @@ data:
       "timepicker": {},
       "timezone": "",
       "title": "CCX Upgrade Risks Predictions",
+      "uid": "ccx-upgrade-risks-predictions",
       "version": 0,
       "weekStart": ""
     }
