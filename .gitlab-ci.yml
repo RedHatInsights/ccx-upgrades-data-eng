@@ -45,7 +45,7 @@ coverage-checking:
 
 bdd-tests:
   stage: test
-  image: quay.io/ccxdev/insights-behavioral-spec:ci
+  image: quay.io/cloudservices/insights-behavioral-spec:latest
   variables:
     PATH_TO_LOCAL_DATA_ENG_SERVICE: "$CI_PROJECT_DIR"
     BDD_PATH: /insights-behavioral-spec
