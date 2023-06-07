@@ -56,7 +56,7 @@ mocked service, please check how it's done in the [docker-compose.yml](docker-co
 Then run some requests against the server:
 
 ```
-curl 'http://127.0.0.1:8000/cluster/34c3ecc5-624a-49a5-bab8-4fdc5e51a266/upgrade-risks-prediction
+curl 'http://127.0.0.1:8000/cluster/34c3ecc5-624a-49a5-bab8-4fdc5e51a266/upgrade-risks-prediction'
 ```
 
 Check the API documentation at http://127.0.0.1:8000/docs or http://127.0.0.1:8000/redoc.
@@ -66,6 +66,9 @@ Check the API documentation at http://127.0.0.1:8000/docs or http://127.0.0.1:80
 Just run `docker-compose up`. Please, check the environment variables defined in
 the `ccx-upgrades-data-eng` service to learn more about how it is configured to
 use mocked services.
+
+Note that you may need to add `--build` to the `docker-compose` command if you
+want to rebuild the data-eng image with the latest changes.
 
 ### Run in an ephemeral environment
 

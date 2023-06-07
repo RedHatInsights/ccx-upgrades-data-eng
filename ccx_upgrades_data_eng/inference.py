@@ -2,6 +2,7 @@
 
 import requests
 from fastapi import HTTPException
+import logging
 
 from ccx_upgrades_data_eng.config import get_settings
 from ccx_upgrades_data_eng.models import (
@@ -11,15 +12,21 @@ from ccx_upgrades_data_eng.models import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 def get_inference_for_predictors(risk_predictors: UpgradeRisksPredictors) -> UpgradeApiResponse:
     """Request the inference service with a set of predictors."""
     settings = get_settings()
 
     inference_endpoint = f"{settings.inference_url}/upgrade-risks-prediction"
-    inference_response = requests.get(inference_endpoint, data=risk_predictors.json())
+    inference_response = requests.get(inference_endpoint, data=risk_predictors.json(), timeout=5)
 
     if inference_response.status_code != 200:
         raise HTTPException(status_code=inference_response.status_code)
+
+    logger.debug("Inference response status code: %s", inference_response.status_code)
+    logger.debug("Inference response text: %s", inference_response.text)
 
     inference_response = InferenceResponse.parse_obj(inference_response.json())
     risks = inference_response.upgrade_risks_predictors
