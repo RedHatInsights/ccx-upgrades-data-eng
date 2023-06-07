@@ -160,6 +160,7 @@ def test_perform_rhobs_request_empty(get_session_manager_mock):
     rhobs_response_mock = MagicMock()
     rhobs_response_mock.status_code = 200
     rhobs_response_mock.json.return_value = RHOBS_EMPTY_REPONSE
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
 
     session_mock = MagicMock()
     session_mock.get.return_value = rhobs_response_mock
@@ -186,6 +187,7 @@ def test_perform_rhobs_request(get_session_manager_mock):
     rhobs_response_mock = MagicMock()
     rhobs_response_mock.status_code = 200
     rhobs_response_mock.json.return_value = RHOBS_RESPONSE
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
 
     session_mock = MagicMock()
     session_mock.get.return_value = rhobs_response_mock
@@ -225,6 +227,7 @@ def test_perform_rhobs_request_no_cluster_version(get_session_manager_mock):
     rhobs_response_mock = MagicMock()
     rhobs_response_mock.status_code = 200
     rhobs_response_mock.json.return_value = rhobs_response
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
 
     session_mock = MagicMock()
     session_mock.get.return_value = rhobs_response_mock
