@@ -10,7 +10,7 @@ from fastapi import HTTPException
 from ccx_upgrades_data_eng.auth import get_session_manager
 from ccx_upgrades_data_eng.config import get_settings
 from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeRisksPredictors
-
+import ccx_upgrades_data_eng.metrics as metrics
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,7 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
     logger.info("Observatorium response contains %s results", len(results))
     logger.debug("Observatorium request elapsed time: %s", response.elapsed.total_seconds())
     logger.debug("Observatorium response results: %s", results)
+    metrics.update_ccx_upgrades_rhobs_time(response.elapsed.total_seconds())
 
     alerts = list()
     focs = list()
