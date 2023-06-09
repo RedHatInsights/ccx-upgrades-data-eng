@@ -95,6 +95,10 @@ objects:
               value: ${INFERENCE_SERVICE_URL}
             - name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
               value: ${RHOBS_QUERY_MAX_MINUTES_FOR_DATA}
+            - name: CACHE_ENABLED
+              value: ${CACHE_ENABLED}
+            - name: CACHE_TTL
+              value: ${CACHE_TTL}
 
             # Just for ephemeral testing
             - name: ALLOW_INSECURE
@@ -220,6 +224,12 @@ parameters:
   value: http://ccx-upgrades-inference-svc:8000
 - description: The number of minutes to consider the data obsolete
   name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
+  value: '60'
+- description: Enable caching of RHOBS and inference queries
+  name: CACHE_ENABLED
+  value: 'True'
+- description: The number of seconds data is kept in the cache
+  name: CACHE_TTL
   value: '60'
 
 - description: Allow an insecure SSO url. This is intended just for ephemeral
