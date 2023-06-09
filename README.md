@@ -28,6 +28,9 @@ The service will read the following environment variables:
 - `RHOBS_REQUEST_TIMEOUT`: Number of seconds to use as timeout for the Observatorium requests. By default, it will use `None` (no timeout).
 - `INFERENCE_URL`: URL of the inference service.
 - `RHOBS_QUERY_MAX_MINUTES_FOR_DATA`: if the data is older than this value, the cluster is considered disconnected.
+- `CACHE_ENABLED`: Enables caching of the queries made to RHOBS and to the inference service if true. Defaults to False.
+- `CACHE_TTL`: Number of seconds a cached item is kept in the cache. A '0' here is the same as disabling the cache.
+
 ### Logging configuration
 
 `uvicorn` allows to pass a [Python logging configuration](https://docs.python.org/3/library/logging.config.html#logging-config-fileformat)
