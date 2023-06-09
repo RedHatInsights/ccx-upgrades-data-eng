@@ -89,6 +89,17 @@ class UpgradeRisksPredictors(BaseModel):
     alerts: List[Alert]
     operator_conditions: List[FOC]
 
+    def __hash__(self):
+        """Needed in order to cache functions that use this model."""
+        return hash(
+            (
+                "alerts",
+                tuple(self.alerts),
+                "operator_conditions",
+                tuple(self.operator_conditions),
+            )
+        )
+
     def remove_duplicates(self):
         """Remove the duplicates from the alerts and focs."""
         self.alerts = list(set(self.alerts))
@@ -139,6 +150,17 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
 
     upgrade_recommended: bool
     upgrade_risks_predictors: UpgradeRisksPredictorsWithURLs
+
+    def __hash__(self):
+        """Needed in order to cache functions that use this model."""
+        return hash(
+            (
+                "upgrade_recommended",
+                self.upgrade_recommended,
+                "upgrade_risks_predictors",
+                self.upgrade_risks_predictors,
+            )
+        )
 
     class Config:  # pylint: disable=too-few-public-methods
         """Update the configuration with an example."""
