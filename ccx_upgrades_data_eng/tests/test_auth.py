@@ -32,14 +32,7 @@ def test_refresh_token_new(session_init_mock):
     assert session_mock.fetch_token.called
 
 
-@patch.dict(
-    os.environ,
-    {
-        "CLIENT_ID": "client-id",
-        "CLIENT_SECRET": "secret",
-        "INFERENCE_URL": "http://inference:8000",
-    },
-)
+@patch.dict(os.environ, needed_env)
 def test_allow_insecure_empty_allow_insecure():
     """Check that if ALLOW_INSECURE env var is empty, the verify is True."""
     get_settings.cache_clear()
