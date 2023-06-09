@@ -11,6 +11,10 @@ RH_OAUTH_ISSUER = "https://sso.redhat.com/auth/realms/redhat-external"
 RHOBS_URL = "https://observatorium.api.stage.openshift.com"
 RHOBS_DEFAULT_TENANT = "telemeter"
 
+DEFAULT_CACHE_ENABLED = False
+DEFAULT_CACHE_TTL = 0
+DEFAULT_CACHE_SIZE = 128
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,6 +35,11 @@ class Settings(BaseSettings):
 
     # Inference service configuration
     inference_url: str
+
+    # Caching configuration
+    cache_enabled: bool = DEFAULT_CACHE_ENABLED
+    cache_ttl: int = DEFAULT_CACHE_TTL
+    cache_size: int = DEFAULT_CACHE_SIZE
 
 
 @lru_cache()

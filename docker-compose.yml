@@ -1,4 +1,4 @@
-version: '3.7'
+
 services:
   ccx-upgrades-data-eng:
     build: .
@@ -12,6 +12,8 @@ services:
       - ALLOW_INSECURE=1
       - RHOBS_URL=http://rhobs-mock:8080
       - OAUTHLIB_INSECURE_TRANSPORT=1
+      - CACHE_ENABLED=0
+      - CACHE_TTL=0
     depends_on:
       - mock-oauth2-server
     restart: always  # needed because it takes some time to connect to mock-oauth2-server
@@ -38,3 +40,4 @@ services:
     image: quay.io/cloudservices/rhobs-mock
     ports:
       - 8081:8080
+
