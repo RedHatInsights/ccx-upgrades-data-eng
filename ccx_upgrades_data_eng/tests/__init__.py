@@ -11,8 +11,8 @@ needed_env_cache_enabled = {
     "CLIENT_SECRET": "secret",
     "INFERENCE_URL": "http://inference:8000",
     "CACHE_ENABLED": "true",
-    "CACHE_TTL": "10",
-    "CACHE_SIZE": "10",
+    "CACHE_TTL": "1",
+    "CACHE_SIZE": "1",
 }
 
 RHOBS_EMPTY_REPONSE = {
