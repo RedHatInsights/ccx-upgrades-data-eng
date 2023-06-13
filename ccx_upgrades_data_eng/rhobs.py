@@ -5,12 +5,19 @@ from typing import List, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
 
+from cachetools import cached
 from fastapi import HTTPException
 
 from ccx_upgrades_data_eng.auth import get_session_manager
 from ccx_upgrades_data_eng.config import get_settings
-from ccx_upgrades_data_eng.models import Alert, FOC, UpgradeRisksPredictors
 import ccx_upgrades_data_eng.metrics as metrics
+from ccx_upgrades_data_eng.models import (
+    Alert,
+    FOC,
+    UpgradeApiResponse,
+    UpgradeRisksPredictors,
+)
+from ccx_upgrades_data_eng.utils import CustomTTLCache
 
 logger = logging.getLogger(__name__)
 
@@ -38,19 +45,15 @@ cluster_operator_conditions{{_id="{cluster_id}", condition="Degraded"}} == 1"""
     return "\nor\n".join(queries)
 
 
-def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str]:
-    """
-    Run the requests to RHOBS server and return the retrieved predictors.
-
-    Also return the console url.
-    """
+def query_rhobs_endpoint(cluster_id: UUID) -> UpgradeApiResponse:
+    """Request the RHOBS  for a given cluster ID."""
     settings = get_settings()
     session = get_session_manager().get_session()
 
     rhobs_endpoint = f"/api/metrics/v1/{settings.rhobs_tenant}/api/v1/query"
     query = single_cluster_alerts_and_focs(cluster_id)
 
-    response = session.get(
+    return session.get(
         f"{settings.rhobs_url}{rhobs_endpoint}",
         params={
             "query": query,
@@ -59,6 +62,16 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
         timeout=settings.rhobs_request_timeout,
         verify=not settings.allow_insecure,
     )
+
+
+@cached(cache=CustomTTLCache())
+def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str]:
+    """
+    Run the requests to RHOBS server and return the retrieved predictors.
+
+    Also return the console url.
+    """
+    response = query_rhobs_endpoint(cluster_id)
 
     if response.status_code == 404:
         logger.debug(f'cluster "{cluster_id}" not found in Observatorium')
@@ -77,8 +90,8 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
     logger.debug("Observatorium response results: %s", results)
     metrics.update_ccx_upgrades_rhobs_time(response.elapsed.total_seconds())
 
-    alerts = list()
-    focs = list()
+    alerts = set()
+    focs = set()
 
     console_url = ""
 
@@ -94,23 +107,15 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
             console_url = metric["url"]
 
         elif metric["__name__"] == "alerts":
-            alerts.append(Alert.parse_metric(metric))
+            alerts.add(Alert.parse_metric(metric))
 
         elif metric["__name__"] == "cluster_operator_conditions":
-            focs.append(FOC.parse_metric(metric))
+            focs.add(FOC.parse_metric(metric))
 
         else:
             logger.debug("received a metric from unexpected type: %s", metric["__name__"])
 
-    predictors = UpgradeRisksPredictors(alerts=alerts, operator_conditions=focs)
-
-    logger.debug(
-        f"Before removing duplicates: {len(predictors.alerts)} alerts and {len(predictors.operator_conditions)} for cluster {cluster_id}"
-    )
-    predictors.remove_duplicates()
-    logger.debug(
-        f"After removing duplicates: {len(predictors.alerts)} alerts and {len(predictors.operator_conditions)} for cluster {cluster_id}"
-    )
+    predictors = UpgradeRisksPredictors(alerts=list(alerts), operator_conditions=list(focs))
 
     return predictors, console_url
 

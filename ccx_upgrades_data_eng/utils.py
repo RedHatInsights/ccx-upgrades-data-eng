@@ -1,7 +1,6 @@
 """Utilities ysed in the other modules of this package."""
 
-from datetime import datetime, timedelta
-from functools import lru_cache, wraps
+from cachetools import TTLCache
 import logging
 from ccx_upgrades_data_eng.config import (
     get_settings,
@@ -14,17 +13,14 @@ from pydantic import ValidationError
 logger = logging.getLogger(__name__)
 
 
-def timed_lru_cache():
-    """Cache the results of the function decorated with @timed_lru_cache.
+class CustomTTLCache(TTLCache):
+    """LRU Cache with TTL for items eviction.
 
-    - The caching must be enabled by setting the CACHE_ENABLED environment variable to true/1.
-    - The TTL of the cached items can be configured by setting the CACHE_TTL environment variable.
-    - The number of simultaneously cached items can be configured by setting the CACHE_SIZE
-    environment variable.
+    Use CACHE_ENABLED, CACHE_TTL, and CACHE size env vars to configure it.
     """
 
-    def wrapper_cache(func):
-        # check env variables related with cache before anything
+    def __init__(self):
+        """Read settings or use default values to configure the cache."""
         try:
             settings = get_settings()
             ttl = settings.cache_ttl
@@ -37,25 +33,13 @@ def timed_lru_cache():
             maxsize = DEFAULT_CACHE_SIZE
 
         logger.debug(f"Cache settings: Enabled: {enabled}, Max size: {maxsize}, TTL: {ttl} seconds")
+        if enabled:
+            super().__init__(maxsize=maxsize, ttl=ttl)
+        else:
+            super().__init__(maxsize=0, ttl=0)
 
-        if not enabled:
-            return func
-
-        func = lru_cache(maxsize=maxsize)(func)
-        func.lifetime = timedelta(seconds=ttl)
-        func.expiration = datetime.utcnow() + func.lifetime
-
-        @wraps(func)
-        def wrapped_func(*args, **kwargs):
-            if datetime.utcnow() >= func.expiration:
-                func.cache_clear()
-                func.expiration = datetime.utcnow() + func.lifetime
-            hits = func.cache_info().hits
-            res = func(*args, **kwargs)
-            if func.cache_info().hits == hits + 1:
-                logger.debug("Returned cached result")
-            return res
-
-        return wrapped_func
-
-    return wrapper_cache
+    def popitem(self):
+        """Overwrite TTLCache's popitem method to log evicted keys."""
+        key, value = super().popitem()
+        logger.debug(f"Key {key} evicted")
+        return key, value
