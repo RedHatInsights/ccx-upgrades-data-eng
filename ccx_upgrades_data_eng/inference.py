@@ -1,8 +1,9 @@
 """Utils to interact with Inference service."""
 
+import logging
 import requests
 from fastapi import HTTPException
-import logging
+from cachetools import cached
 
 from ccx_upgrades_data_eng.config import get_settings
 from ccx_upgrades_data_eng.models import (
@@ -10,7 +11,8 @@ from ccx_upgrades_data_eng.models import (
     UpgradeRisksPredictors,
     InferenceResponse,
 )
-
+from ccx_upgrades_data_eng.urls import fill_urls
+from ccx_upgrades_data_eng.utils import CustomTTLCache
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +33,23 @@ def get_inference_for_predictors(risk_predictors: UpgradeRisksPredictors) -> Upg
     inference_response = InferenceResponse.parse_obj(inference_response.json())
     risks = inference_response.upgrade_risks_predictors
 
-    return UpgradeApiResponse(
-        upgrade_recommended=calculate_upgrade_recommended(risks), upgrade_risks_predictors=risks
+    response = UpgradeApiResponse(
+        upgrade_recommended=calculate_upgrade_recommended(risks),
+        upgrade_risks_predictors=risks,
     )
+    logger.debug("Inference response is: %s", response)
+    return response
+
+
+@cached(cache=CustomTTLCache())
+def get_filled_inference_for_predictors(
+    risk_predictors: UpgradeRisksPredictors, console_url: str
+) -> UpgradeApiResponse:
+    """Return inference data with risk predictors and urls set."""
+    inference_response = get_inference_for_predictors(risk_predictors)
+    logger.debug("Filling alerts and focs with the console url")
+    fill_urls(inference_response, console_url)
+    return inference_response
 
 
 def calculate_upgrade_recommended(risks: UpgradeRisksPredictors) -> bool:

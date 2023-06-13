@@ -8,12 +8,17 @@ from fastapi import HTTPException
 
 from ccx_upgrades_data_eng.inference import (
     get_inference_for_predictors,
+    get_filled_inference_for_predictors,
     calculate_upgrade_recommended,
 )
-from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS, EXAMPLE_PREDICTORS_WITH_EMPTY_URL
+from ccx_upgrades_data_eng.examples import (
+    EXAMPLE_CONSOLE_URL,
+    EXAMPLE_PREDICTORS,
+    EXAMPLE_PREDICTORS_WITH_EMPTY_URL,
+    EXAMPLE_PREDICTORS_WITH_URL,
+)
 from ccx_upgrades_data_eng.models import UpgradeRisksPredictors, FOC
 from ccx_upgrades_data_eng.tests import needed_env
-
 
 INFERENCE_UPGRADE_MOCKED_RESPONSE_EMPTY_PREDICTORS = {
     "upgrade_risks_predictors": {
@@ -24,6 +29,10 @@ INFERENCE_UPGRADE_MOCKED_RESPONSE_EMPTY_PREDICTORS = {
 
 INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_PREDICTORS = {
     "upgrade_risks_predictors": EXAMPLE_PREDICTORS,
+}
+
+INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_FILLED_URLS = {
+    "upgrade_risks_predictors": EXAMPLE_PREDICTORS_WITH_URL,
 }
 
 
@@ -94,3 +103,19 @@ def test_calculate_upgrade_recommended_1_predictor():
         operator_conditions=[FOC(name="test", condition="test")],
     )
     assert not calculate_upgrade_recommended(risk_predictors)
+
+
+@patch.dict(os.environ, needed_env)
+@patch("requests.get")
+def test_get_filled_inference_for_predictors_ok(get_mock):
+    """Check response when inference service returns more than 0 predictors."""
+    response_mock = MagicMock()
+    response_mock.status_code = 200
+    response_mock.json.return_value = INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_FILLED_URLS
+    get_mock.return_value = response_mock
+
+    risk_predictors = UpgradeRisksPredictors.parse_obj(EXAMPLE_PREDICTORS)
+    response = get_filled_inference_for_predictors(risk_predictors, EXAMPLE_CONSOLE_URL)
+    assert not response.upgrade_recommended
+    # With an empty risk prediction, the response should be always the same
+    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_URL

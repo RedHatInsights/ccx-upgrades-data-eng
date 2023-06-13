@@ -99,6 +99,8 @@ objects:
               value: ${CACHE_ENABLED}
             - name: CACHE_TTL
               value: ${CACHE_TTL}
+            - name: CACHE_SIZE
+              value: ${CACHE_SIZE}
 
             # Just for ephemeral testing
             - name: ALLOW_INSECURE
@@ -230,7 +232,10 @@ parameters:
   value: 'True'
 - description: The number of seconds data is kept in the cache
   name: CACHE_TTL
-  value: '60'
+  value: '300'
+- description: The number of item that can be kept in the cache
+  name: CACHE_SIZE
+  value: '10000'
 
 - description: Allow an insecure SSO url. This is intended just for ephemeral
   name: ALLOW_INSECURE
