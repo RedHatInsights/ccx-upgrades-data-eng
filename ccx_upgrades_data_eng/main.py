@@ -8,9 +8,8 @@ from fastapi.responses import JSONResponse
 
 from ccx_upgrades_data_eng.auth import get_session_manager, SessionManagerException, TokenException
 from ccx_upgrades_data_eng.config import get_settings, Settings
-from ccx_upgrades_data_eng.inference import get_inference_for_predictors
+from ccx_upgrades_data_eng.inference import get_filled_inference_for_predictors
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
-from ccx_upgrades_data_eng.urls import fill_urls
 from ccx_upgrades_data_eng.rhobs import perform_rhobs_request
 import ccx_upgrades_data_eng.metrics as metrics
 
@@ -61,10 +60,7 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
         return JSONResponse("No data for this cluster", status_code=status.HTTP_404_NOT_FOUND)
 
     logger.debug("Getting inference result")
-    inference_result = get_inference_for_predictors(predictors)
-    logger.debug("Inference result is: %s", inference_result)
-    logger.debug("Filling alerts and focs with the console url")
-    fill_urls(inference_result, console_url)
+    inference_result = get_filled_inference_for_predictors(predictors, console_url)
 
     metrics.update_ccx_upgrades_prediction_total(inference_result)
     metrics.update_ccx_upgrades_risks_total(inference_result)
