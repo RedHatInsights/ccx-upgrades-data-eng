@@ -2,7 +2,7 @@
 
 import os
 from unittest.mock import MagicMock, patch
-
+from datetime import datetime, timedelta
 import pytest
 from fastapi import HTTPException
 
@@ -119,3 +119,17 @@ def test_get_filled_inference_for_predictors_ok(get_mock):
     assert not response.upgrade_recommended
     # With an empty risk prediction, the response should be always the same
     assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_URL
+
+
+@patch.dict(os.environ, needed_env)
+@patch("requests.get")
+def test_last_checked_at(get_mock):
+    """Check the last_checked_at field is updated correctly."""
+    response_mock = MagicMock()
+    response_mock.status_code = 200
+    response_mock.json.return_value = INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_FILLED_URLS
+    get_mock.return_value = response_mock
+
+    risk_predictors = UpgradeRisksPredictors.parse_obj(EXAMPLE_PREDICTORS)
+    response = get_inference_for_predictors(risk_predictors)
+    assert datetime.now() - timedelta(minutes=1) < response.last_checked_at < datetime.now()
