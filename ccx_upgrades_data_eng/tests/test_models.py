@@ -10,7 +10,11 @@ from ccx_upgrades_data_eng.models import (
     InferenceResponse,
     UpgradeRisksPredictors,
 )
-from ccx_upgrades_data_eng.examples import EXAMPLE_PREDICTORS, EXAMPLE_PREDICTORS_WITH_EMPTY_URL
+from ccx_upgrades_data_eng.examples import (
+    EXAMPLE_PREDICTORS,
+    EXAMPLE_PREDICTORS_WITH_EMPTY_URL,
+    EXAMPLE_DATE,
+)
 
 
 GOOD_ALERTS = [
@@ -263,7 +267,9 @@ def test_upgrade_risk_predictors():
 def test_upgrade_api_response():
     """Test the UpgradeApiResponse can be created and fields are populated."""
     response = UpgradeApiResponse(
-        upgrade_recommended=False, upgrade_risks_predictors=EXAMPLE_PREDICTORS
+        upgrade_recommended=False,
+        upgrade_risks_predictors=EXAMPLE_PREDICTORS,
+        last_checked_at=EXAMPLE_DATE,
     )
     assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 
