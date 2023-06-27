@@ -4,6 +4,7 @@ import logging
 import requests
 from fastapi import HTTPException
 from cachetools import cached
+from datetime import datetime
 
 from ccx_upgrades_data_eng.config import get_settings
 from ccx_upgrades_data_eng.models import (
@@ -36,6 +37,7 @@ def get_inference_for_predictors(risk_predictors: UpgradeRisksPredictors) -> Upg
     response = UpgradeApiResponse(
         upgrade_recommended=calculate_upgrade_recommended(risks),
         upgrade_risks_predictors=risks,
+        last_checked_at=datetime.now(),
     )
     logger.debug("Inference response is: %s", response)
     return response

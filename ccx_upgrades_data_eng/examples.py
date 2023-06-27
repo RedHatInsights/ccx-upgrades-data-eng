@@ -4,6 +4,8 @@ ALERT_NAME = "APIRemovedInNextEUSReleaseInUse"
 
 FOC_NAME = "authentication"
 
+EXAMPLE_DATE = "0001-01-01T00:00:00Z"
+
 EXAMPLE_ALERT = {
     "name": ALERT_NAME,
     "namespace": "openshift-kube-apiserver",
