@@ -2,6 +2,7 @@
 
 from typing import Any, List, Optional, Type
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from datetime import datetime
 
 from ccx_upgrades_data_eng.examples import (
     EXAMPLE_ALERT,
@@ -150,6 +151,7 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
 
     upgrade_recommended: bool
     upgrade_risks_predictors: UpgradeRisksPredictorsWithURLs
+    last_checked_at: datetime
 
     def __hash__(self):
         """Needed in order to cache functions that use this model."""

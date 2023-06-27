@@ -3,6 +3,7 @@
 import os
 from unittest.mock import MagicMock, patch
 import pytest
+from datetime import datetime
 
 from fastapi import HTTPException, Request
 from fastapi.testclient import TestClient
@@ -94,6 +95,8 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         get_session_manager_mock,
     ):
         """If the request has a valid cluster_id it should work."""
+        test_date = datetime.now()
+
         session_manager_mock = MagicMock()
         get_session_manager_mock.return_value = session_manager_mock
         risk_predictors = UpgradeRisksPredictors(
@@ -109,6 +112,7 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         get_filled_inference_for_predictors_mock.return_value = UpgradeApiResponse(
             upgrade_recommended=True,
             upgrade_risks_predictors=risk_predictors,
+            last_checked_at=test_date,
         )
 
         cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
@@ -123,6 +127,7 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
             "alerts": [],
             "operator_conditions": [],
         }
+        assert content["last_checked_at"] == test_date.isoformat()
 
     @patch("ccx_upgrades_data_eng.main.get_filled_inference_for_predictors")
     @patch("ccx_upgrades_data_eng.main.perform_rhobs_request")
