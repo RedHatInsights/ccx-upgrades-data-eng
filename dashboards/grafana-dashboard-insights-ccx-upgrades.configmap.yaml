@@ -115,7 +115,7 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "1 - ccx_upgrades_prediction_total{recommendation=\"failure\"} / ccx_upgrades_prediction_total",
+              "expr": "1 - sum(ccx_upgrades_prediction_total{recommendation=\"failure\"} / ccx_upgrades_prediction_total)",
               "legendFormat": "__auto",
               "range": true,
               "refId": "A"
