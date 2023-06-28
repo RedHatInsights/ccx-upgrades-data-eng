@@ -2,7 +2,7 @@
 
 import os
 from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi import HTTPException
 
@@ -132,4 +132,8 @@ def test_last_checked_at(get_mock):
 
     risk_predictors = UpgradeRisksPredictors.parse_obj(EXAMPLE_PREDICTORS)
     response = get_inference_for_predictors(risk_predictors)
-    assert datetime.now() - timedelta(minutes=1) < response.last_checked_at < datetime.now()
+    assert (
+        datetime.now(tz=timezone.utc) - timedelta(minutes=1)
+        < response.last_checked_at
+        < datetime.now(tz=timezone.utc)
+    )
