@@ -12,9 +12,12 @@ from ccx_upgrades_data_eng.inference import get_filled_inference_for_predictors
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
 from ccx_upgrades_data_eng.rhobs import perform_rhobs_request
 import ccx_upgrades_data_eng.metrics as metrics
+from ccx_upgrades_data_eng.logging_utils import setup_watchtower
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
+
+setup_watchtower()
 logger = logging.getLogger(__name__)
 app = FastAPI()
 

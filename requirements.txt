@@ -12,3 +12,8 @@ pytest-asyncio==0.21.0
 pylint==2.15.9  # pre-commit
 toml==0.10.2    # pre-commit
 httpx==0.23.3    # fastapi testing
+
+# Logging to Cloudwatch
+boto3
+python-json-logger
+watchtower
