@@ -29,7 +29,7 @@ from watchtower import CloudWatchLogHandler
 
 
 def setup_watchtower(logging_config=None):
-    """Setup the CloudWatch handler if the proper configuration is provided."""
+    """Set the CloudWatch handler if the proper configuration is provided."""
     enabled = os.getenv("LOGGING_TO_CW_ENABLED", "False").lower()
     if enabled not in ("true", "1", "t", "yes"):
         return
@@ -65,8 +65,7 @@ def setup_watchtower(logging_config=None):
     )
 
     if logging_config is not None:
-        log_format = logging_config.get(
-            "formatters", {}).get("cloudwatch", {}).get("format")
+        log_format = logging_config.get("formatters", {}).get("cloudwatch", {}).get("format")
         handler.setFormatter(CloudWatchFormatter(log_format))
 
     try:
@@ -74,8 +73,7 @@ def setup_watchtower(logging_config=None):
 
     except ValueError:
         root_logger.warning(
-            "Log level for cloudwatch cannot be set to %s. Default to INFO",
-            log_level
+            "Log level for cloudwatch cannot be set to %s. Default to INFO", log_level
         )
         handler.setLevel(logging.INFO)
 
@@ -115,7 +113,6 @@ def get_mac_address():
 
     # finally format it to the human readable format
     if mac_address is not None:
-        mac_address = ":".join(reversed([
-            hex((mac_address >> i * 8) & 0xFF)[2:] for i in range(6)]))
+        mac_address = ":".join(reversed([hex((mac_address >> i * 8) & 0xFF)[2:] for i in range(6)]))
 
     return mac_address
