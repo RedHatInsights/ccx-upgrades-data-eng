@@ -32,6 +32,7 @@ def setup_watchtower(logging_config=None):
     """Set the CloudWatch handler if the proper configuration is provided."""
     enabled = os.getenv("LOGGING_TO_CW_ENABLED", "False").lower()
     if enabled not in ("true", "1", "t", "yes"):
+        print("Cloudwatch is not enabled")
         return
 
     aws_config_vars = (
@@ -42,7 +43,9 @@ def setup_watchtower(logging_config=None):
         "CW_STREAM_NAME",
     )
 
-    if any(os.environ.get(key, "").strip() == "" for key in aws_config_vars):
+    missing_envs = [os.environ.get(key, "").strip() == "" for key in aws_config_vars]
+    if len(missing_envs) > 0:
+        print(f"Missing envs: {missing_envs}, so not starting cloudwatch")
         return
 
     # Get the log level from CW_LOG_LEVEL. If not, default to INFO
@@ -78,6 +81,7 @@ def setup_watchtower(logging_config=None):
         handler.setLevel(logging.INFO)
 
     root_logger.addHandler(handler)
+    print("Cloudwatch is configured")
 
 
 class CloudWatchFormatter(jsonlogger.JsonFormatter):
