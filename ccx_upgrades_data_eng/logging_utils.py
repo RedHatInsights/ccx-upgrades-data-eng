@@ -43,7 +43,9 @@ def setup_watchtower(logging_config=None):
         "CW_STREAM_NAME",
     )
 
-    missing_envs = [os.environ.get(key, "").strip() == "" for key in aws_config_vars]
+    missing_envs = list(
+        filter(lambda key: os.environ.get(key, "").strip() == "", [key for key in aws_config_vars])
+    )
     if len(missing_envs) > 0:
         print(f"Missing envs: {missing_envs}, so not starting cloudwatch")
         return
