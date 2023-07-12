@@ -21,14 +21,21 @@ Copied from https://github.com/RedHatInsights/insights-ccx-messaging/blob/main/c
 import os
 import logging
 
-from pythonjsonlogger import jsonlogger
 from boto3.session import Session
 from watchtower import CloudWatchLogHandler
 
 
 class InitializedCloudWatchLogger(logging.Handler):
     """Set the CloudWatch handler if the proper configuration is provided."""
+
     def __new__(self):
+        """Try to create a CloudWatchLogHandler, otherwise create a no-op.
+
+        Returns:
+            logging.NullHandler: if the hanlder couldn't be configured.
+                or
+            watchtower.CloudWatchLogHandler: if it could be configured.
+        """
         enabled = os.getenv("LOGGING_TO_CW_ENABLED", "False").lower()
         if enabled not in ("true", "1", "t", "yes"):
             # TODO: How to not initialize?
@@ -43,8 +50,9 @@ class InitializedCloudWatchLogger(logging.Handler):
             "CW_STREAM_NAME",
         )
         missing_envs = list(
-            filter(lambda key: os.environ.get(key, "").strip() == "",
-                   [key for key in aws_config_vars])
+            filter(
+                lambda key: os.environ.get(key, "").strip() == "", [key for key in aws_config_vars]
+            )
         )
 
         if len(missing_envs) > 0:
@@ -61,8 +69,8 @@ class InitializedCloudWatchLogger(logging.Handler):
         print("Cloudwatch is configured")
 
         return CloudWatchLogHandler(
-                boto3_client=client,
-                log_group_name=os.environ["CW_LOG_GROUP"],
-                log_stream_name=os.environ["CW_STREAM_NAME"],
-                create_log_group=False,
-            )
+            boto3_client=client,
+            log_group_name=os.environ["CW_LOG_GROUP"],
+            log_stream_name=os.environ["CW_STREAM_NAME"],
+            create_log_group=False,
+        )
