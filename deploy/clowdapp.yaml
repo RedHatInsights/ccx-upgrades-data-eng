@@ -160,15 +160,17 @@ objects:
           format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         default:
           (): uvicorn.logging.DefaultFormatter
-          fmt: '%(levelprefix)s %(message)s'
+          fmt: '%(name)s %(levelprefix)s %(message)s'
           use_colors: None
         access:
           (): uvicorn.logging.AccessFormatter
-          fmt: '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+          fmt: '%(name)s %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+        json:
+          class: pythonjsonlogger.jsonlogger.JsonFormatter
       handlers:
         console:
           class: logging.StreamHandler
-          level: "${LOG_LEVEL}"
+          level: DEBUG
           formatter: simple
           stream: ext://sys.stdout
         default:
@@ -179,24 +181,27 @@ objects:
           formatter: access
           class: logging.StreamHandler
           stream: ext://sys.stdout
+        cloudwatch:
+          formatter: json
+          class: ccx_upgrades_data_eng.logging_utils.InitializedCloudWatchLogger
       loggers:
         ccx_upgrades_data_eng:
           level: "${LOG_LEVEL}"
-          handlers: [default]
+          handlers: [default, cloudwatch]
           propagate: no
         uvicorn:
-          handlers: [default]
+          handlers: [default, cloudwatch]
           level: "${LOG_LEVEL}"
           propagate: no
         uvicorn.error:
           level: "${LOG_LEVEL}"
         uvicorn.access:
-          handlers: [access]
+          handlers: [access, cloudwatch]
           level: "${LOG_LEVEL}"
           propagate: no
       root:
         level: "${LOG_LEVEL}"
-        handlers: [default]
+        handlers: [default, cloudwatch]
 
 - kind: Service
   apiVersion: v1
