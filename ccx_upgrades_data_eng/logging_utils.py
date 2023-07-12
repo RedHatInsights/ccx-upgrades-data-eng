@@ -18,107 +18,51 @@ Utility functions to redirect logs to cloudwatch.
 Copied from https://github.com/RedHatInsights/insights-ccx-messaging/blob/main/ccx_messaging/utils/logging.py  # noqa: E501
 """
 
-import logging
 import os
-import platform
-import uuid
+import logging
 
 from pythonjsonlogger import jsonlogger
 from boto3.session import Session
 from watchtower import CloudWatchLogHandler
 
 
-def setup_watchtower(logging_config=None):
+class InitializedCloudWatchLogger(logging.Handler):
     """Set the CloudWatch handler if the proper configuration is provided."""
-    enabled = os.getenv("LOGGING_TO_CW_ENABLED", "False").lower()
-    if enabled not in ("true", "1", "t", "yes"):
-        print("Cloudwatch is not enabled")
-        return
+    def __new__(self):
+        enabled = os.getenv("LOGGING_TO_CW_ENABLED", "False").lower()
+        if enabled not in ("true", "1", "t", "yes"):
+            # TODO: How to not initialize?
+            print("Cloudwatch is not enabled")
+            return logging.NullHandler()
 
-    aws_config_vars = (
-        "CW_AWS_ACCESS_KEY_ID",
-        "CW_AWS_SECRET_ACCESS_KEY",
-        "CW_AWS_REGION_NAME",
-        "CW_LOG_GROUP",
-        "CW_STREAM_NAME",
-    )
-
-    missing_envs = list(
-        filter(lambda key: os.environ.get(key, "").strip() == "", [key for key in aws_config_vars])
-    )
-    if len(missing_envs) > 0:
-        print(f"Missing envs: {missing_envs}, so not starting cloudwatch")
-        return
-
-    # Get the log level from CW_LOG_LEVEL. If not, default to INFO
-    log_level = logging.getLevelName(os.getenv("CW_LOG_LEVEL", "INFO"))
-
-    session = Session(
-        aws_access_key_id=os.environ["CW_AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=os.environ["CW_AWS_SECRET_ACCESS_KEY"],
-        region_name=os.environ["CW_AWS_REGION_NAME"],
-    )
-    client = session.client("logs")
-
-    root_logger = logging.getLogger()
-
-    handler = CloudWatchLogHandler(
-        boto3_client=client,
-        log_group_name=os.environ["CW_LOG_GROUP"],
-        log_stream_name=os.environ["CW_STREAM_NAME"],
-        create_log_group=False,
-    )
-
-    if logging_config is not None:
-        log_format = logging_config.get("formatters", {}).get("cloudwatch", {}).get("format")
-        handler.setFormatter(CloudWatchFormatter(log_format))
-
-    try:
-        handler.setLevel(log_level)
-
-    except ValueError:
-        root_logger.warning(
-            "Log level for cloudwatch cannot be set to %s. Default to INFO", log_level
+        aws_config_vars = (
+            "CW_AWS_ACCESS_KEY_ID",
+            "CW_AWS_SECRET_ACCESS_KEY",
+            "CW_AWS_REGION_NAME",
+            "CW_LOG_GROUP",
+            "CW_STREAM_NAME",
         )
-        handler.setLevel(logging.INFO)
+        missing_envs = list(
+            filter(lambda key: os.environ.get(key, "").strip() == "",
+                   [key for key in aws_config_vars])
+        )
 
-    root_logger.addHandler(handler)
-    print("Cloudwatch is configured")
+        if len(missing_envs) > 0:
+            print(f"Missing envs: {missing_envs}, so not starting cloudwatch")
+            return logging.NullHandler()
 
+        session = Session(
+            aws_access_key_id=os.environ["CW_AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=os.environ["CW_AWS_SECRET_ACCESS_KEY"],
+            region_name=os.environ["CW_AWS_REGION_NAME"],
+        )
+        client = session.client("logs")
 
-class CloudWatchFormatter(jsonlogger.JsonFormatter):
-    """Class that implements formatter for logging to CloudWatch."""
+        print("Cloudwatch is configured")
 
-    def __init__(self, *args, **kwargs):
-        """Initialize CloudWatchFormatter."""
-        super().__init__(*args, **kwargs)
-
-        self.hostname = platform.node()
-        self.mac_address = get_mac_address()
-
-    def format(self, record):
-        """Format the record."""
-        record.mac_address = self.mac_address
-        record.hostname = self.hostname
-        return super().format(record)
-
-
-def get_mac_address():
-    """Get mac address or None if it is not possible."""
-    mac_address = uuid.getnode()
-
-    # Ignore if it wasn't successful, see help of uuid.getnode():
-
-    # If all attempts to obtain the hardware address fail, we
-    # choose a random 48-bit number with its eighth bit set to 1 as recommended
-    # in RFC 4122.
-    if (mac_address >> 40) & 1:
-        # if this bit is 1, ignore,
-        # it's better than have bunch of random numbers in logs
-        mac_address = None
-
-    # finally format it to the human readable format
-    if mac_address is not None:
-        mac_address = ":".join(reversed([hex((mac_address >> i * 8) & 0xFF)[2:] for i in range(6)]))
-
-    return mac_address
+        return CloudWatchLogHandler(
+                boto3_client=client,
+                log_group_name=os.environ["CW_LOG_GROUP"],
+                log_stream_name=os.environ["CW_STREAM_NAME"],
+                create_log_group=False,
+            )
