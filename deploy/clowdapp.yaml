@@ -103,7 +103,7 @@ objects:
               value: ${CACHE_SIZE}
             # Cloudwatch logging
             - name: LOGGING_TO_CW_ENABLED
-              value: "True"
+              value: ${LOGGING_TO_CW_ENABLED}
             - name: CW_STREAM_NAME
               value: ccx-upgrades-data-eng
             - name: CW_AWS_REGION_NAME
@@ -274,3 +274,6 @@ parameters:
   name: ALLOW_INSECURE
   # Can be any of True and 1 are set to True; False and 0 are set to False
   value: 'False'
+- description: Whether to log into CW
+  name: LOGGING_TO_CW_ENABLED
+  value: 'True'
