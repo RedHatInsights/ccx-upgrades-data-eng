@@ -144,12 +144,12 @@ objects:
           volumes:
           - name: config
             configMap:
-              name: logging-config
+              name: logging-config-ccx-upgrades-data-eng
 
 - kind: ConfigMap
   apiVersion: v1
   metadata:
-    name: logging-config
+    name: logging-config-ccx-upgrades-data-eng
     labels:
       app: ccx-upgrades-data-eng
   data:
