@@ -12,14 +12,11 @@ from ccx_upgrades_data_eng.inference import get_filled_inference_for_predictors
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
 from ccx_upgrades_data_eng.rhobs import perform_rhobs_request
 import ccx_upgrades_data_eng.metrics as metrics
-from ccx_upgrades_data_eng.logging_utils import setup_watchtower
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
 
-setup_watchtower()
 logger = logging.getLogger(__name__)
-root_logger = logging.getLogger()
 app = FastAPI()
 
 
@@ -57,10 +54,6 @@ async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
 async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depends(get_settings)):
     """Return the predition of an upgrade failure given a set of alerts and focs."""
     logger.info(f"Received cluster: {cluster_id}")
-
-    logger.info("test normal")
-    root_logger.info("test root")
-
     logger.debug("Getting predictors from RHOBS")
     predictors, console_url = perform_rhobs_request(cluster_id)
     if console_url == "":
