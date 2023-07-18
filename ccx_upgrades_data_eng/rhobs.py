@@ -4,6 +4,7 @@ import logging
 from typing import List, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
+import requests
 
 from cachetools import cached
 from fastapi import HTTPException
@@ -14,7 +15,6 @@ import ccx_upgrades_data_eng.metrics as metrics
 from ccx_upgrades_data_eng.models import (
     Alert,
     FOC,
-    UpgradeApiResponse,
     UpgradeRisksPredictors,
 )
 from ccx_upgrades_data_eng.utils import CustomTTLCache
@@ -22,36 +22,24 @@ from ccx_upgrades_data_eng.utils import CustomTTLCache
 logger = logging.getLogger(__name__)
 
 
-def single_cluster_alerts_and_focs(cluster_id: str) -> str:
-    """Return a query for retrieving alerts and focs for just one cluster."""
-    return alerts_and_focs([cluster_id])
-
-
 def alerts_and_focs(cluster_ids: List[str]) -> str:
     """Return a query for retrieving alerts and focs for serveral clusters."""
-    queries = []
-
-    for cluster_id in cluster_ids:
-        queries.append(
-            f"""console_url{{_id="{cluster_id}"}}
+    clusters = "|".join(cluster_ids)
+    return f"""console_url{{_id=~"{clusters}"}}
 or
-alerts{{_id="{cluster_id}", namespace=~"openshift-.*", severity=~"warning|critical"}}
+alerts{{_id=~"{clusters}", namespace=~"openshift-.*", severity=~"warning|critical"}}
 or
-cluster_operator_conditions{{_id="{cluster_id}", condition="Available"}} == 0
+cluster_operator_conditions{{_id=~"{clusters}", condition="Available"}} == 0
 or
-cluster_operator_conditions{{_id="{cluster_id}", condition="Degraded"}} == 1"""
-        )
-
-    return "\nor\n".join(queries)
+cluster_operator_conditions{{_id=~"{clusters}", condition="Degraded"}} == 1"""
 
 
-def query_rhobs_endpoint(cluster_id: UUID) -> UpgradeApiResponse:
+def query_rhobs_endpoint(query: str) -> requests.Response:
     """Request the RHOBS  for a given cluster ID."""
     settings = get_settings()
     session = get_session_manager().get_session()
 
     rhobs_endpoint = f"/api/metrics/v1/{settings.rhobs_tenant}/api/v1/query"
-    query = single_cluster_alerts_and_focs(cluster_id)
 
     return session.get(
         f"{settings.rhobs_url}{rhobs_endpoint}",
@@ -71,7 +59,8 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
 
     Also return the console url.
     """
-    response = query_rhobs_endpoint(cluster_id)
+    query = alerts_and_focs([cluster_id])
+    response = query_rhobs_endpoint(query)
 
     if response.status_code == 404:
         logger.debug(f'cluster "{cluster_id}" not found in Observatorium')
@@ -124,3 +113,24 @@ def get_timestamp_minutes_before(minutes):
     """Return the timestamp $hours_before."""
     d = datetime.now() - timedelta(minutes=minutes)
     return d.timestamp()
+
+
+if __name__ == "__main__":
+    from data import clusters  # fill this with a list of clusters
+    import time
+    import random
+
+    query = alerts_and_focs([clusters[0]])
+    resp = query_rhobs_endpoint(query)
+    print("n_clusters,duration,n_alerts,size")
+    for N in range(10, 510, 20):
+        clusters_to_test = random.sample(clusters, N)
+        query = alerts_and_focs(clusters_to_test)
+        start_time = time.time()
+        resp = query_rhobs_endpoint(query)
+        duration = time.time() - start_time
+        assert resp.status_code == 200, f"{resp.status_code}: {resp.text}"
+        results = resp.json().get("data", dict()).get("result", list())
+        assert len(results) > 5
+        print(f"{len(clusters_to_test)},{duration},{len(results)},{len(resp.content)}")
+        time.sleep(1)
