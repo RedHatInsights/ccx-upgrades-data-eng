@@ -62,7 +62,37 @@ data:
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "thresholds"
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
               },
               "mappings": [],
               "thresholds": {
@@ -82,7 +112,7 @@ data:
                   }
                 ]
               },
-              "unit": "percentunit"
+              "unit": "none"
             },
             "overrides": []
           },
@@ -94,18 +124,16 @@ data:
           },
           "id": 19,
           "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
             },
-            "textMode": "auto"
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
           },
           "pluginVersion": "9.3.8",
           "targets": [
@@ -115,14 +143,14 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
-              "expr": "1 - sum(ccx_upgrades_prediction_total{recommendation=\"failure\"} / ccx_upgrades_prediction_total)",
-              "legendFormat": "__auto",
+              "expr": "rate(ccx_upgrades_prediction_total[5m])",
+              "legendFormat": "{{recommendation}}",
               "range": true,
               "refId": "A"
             }
           ],
-          "title": "% upgrade recommended",
-          "type": "stat"
+          "title": "Upgrade recommended rate (5m)",
+          "type": "timeseries"
         },
         {
           "datasource": {
