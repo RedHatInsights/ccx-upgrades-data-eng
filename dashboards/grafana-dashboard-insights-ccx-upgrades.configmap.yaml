@@ -371,16 +371,6 @@ data:
               "color": {
                 "mode": "thresholds"
               },
-              "custom": {
-                "fillOpacity": 99,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineWidth": 1
-              },
               "mappings": [],
               "thresholds": {
                 "mode": "absolute",
@@ -391,26 +381,30 @@ data:
                   }
                 ]
               },
-              "unit": "s"
+              "unit": "none"
             },
             "overrides": []
           },
           "gridPos": {
-            "h": 4,
+            "h": 8,
             "w": 6,
             "x": 18,
             "y": 0
           },
           "id": 17,
           "options": {
-            "bucketOffset": 0,
-            "bucketSize": 0,
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": false
-            }
+            "displayMode": "gradient",
+            "minVizHeight": 15,
+            "minVizWidth": 40,
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "last"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": false
           },
           "pluginVersion": "9.3.8",
           "targets": [
@@ -420,14 +414,17 @@ data:
                 "uid": "${datasource}"
               },
               "editorMode": "code",
+              "exemplar": false,
               "expr": "sum by (le) (ccx_upgrades_rhobs_time_bucket{namespace=\"$namespace\"})",
+              "format": "heatmap",
+              "instant": false,
               "legendFormat": "__auto",
               "range": true,
               "refId": "A"
             }
           ],
           "title": "Time to query rhobs",
-          "type": "histogram"
+          "type": "bargauge"
         },
         {
           "datasource": {
@@ -505,74 +502,6 @@ data:
           ],
           "title": "Number of pods",
           "type": "stat"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "custom": {
-                "fillOpacity": 99,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineWidth": 1
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 18,
-            "y": 4
-          },
-          "id": 20,
-          "options": {
-            "bucketOffset": 0,
-            "bucketSize": 0,
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": false
-            }
-          },
-          "pluginVersion": "9.3.8",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "sum by (le) (ccx_upgrades_risks_total_bucket{namespace=\"$namespace\"})",
-              "legendFormat": "__auto",
-              "range": true,
-              "refId": "A"
-            }
-          ],
-          "title": "Total risks",
-          "type": "histogram"
         },
         {
           "datasource": {
@@ -1326,6 +1255,6 @@ data:
       "timezone": "",
       "title": "CCX Upgrade Risks Predictions",
       "uid": "ccx-upgrade-risks-predictions",
-      "version": 4,
+      "version": 5,
       "weekStart": ""
     }
