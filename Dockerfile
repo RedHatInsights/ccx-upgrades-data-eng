@@ -23,7 +23,7 @@ RUN pip uninstall -y \
     py \
     pip
 
-RUN microdnf remove -y git-core openssh-clients
+RUN microdnf remove -y git-core openssh-clients openssh
 RUN microdnf clean all
 
 USER 1001
