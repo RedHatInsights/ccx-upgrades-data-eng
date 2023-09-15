@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8-minimal:8.8-860
+FROM registry.access.redhat.com/ubi8-minimal:8.8-1037
 
 ENV VENV=/ccx-upgrades-data-eng-venv\
     HOME=/ccx-upgrades-data-eng
