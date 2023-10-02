@@ -95,6 +95,8 @@ objects:
               value: ${INFERENCE_SERVICE_URL}
             - name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
               value: ${RHOBS_QUERY_MAX_MINUTES_FOR_DATA}
+            - name: RHOBS_REQUEST_TIMEOUT
+              value: ${RHOBS_REQUEST_TIMEOUT}
             - name: CACHE_ENABLED
               value: ${CACHE_ENABLED}
             - name: CACHE_TTL
@@ -260,6 +262,9 @@ parameters:
 - description: The number of minutes to consider the data obsolete
   name: RHOBS_QUERY_MAX_MINUTES_FOR_DATA
   value: '60'
+- description: The number of seconds to wait for RHOBS answer
+  name: RHOBS_REQUEST_TIMEOUT
+  value: '10'
 - description: Enable caching of RHOBS and inference queries
   name: CACHE_ENABLED
   value: 'True'
