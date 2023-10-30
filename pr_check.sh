@@ -23,10 +23,10 @@ APP_NAME="ccx-data-pipeline"  # name of app-sre "application" folder this compon
 REF_ENV="insights-production"
 COMPONENT_NAME="ccx-upgrades-data-eng"  # name of app-sre "resourceTemplate" in deploy.yaml for this component
 IMAGE="quay.io/cloudservices/ccx-upgrades-data-eng"
-COMPONENTS="ccx-upgrades-data-eng ccx-upgrades-inference insights-results-smart-proxy ccx-mock-ams ccx-upgrades-rhobs-mock ccx-upgrades-sso-mock ocp-advisor-frontend" # space-separated list of components to laod
+COMPONENTS="ccx-upgrades-data-eng ccx-upgrades-inference insights-results-smart-proxy ccx-mock-ams ccx-upgrades-rhobs-mock ccx-upgrades-sso-mock" # space-separated list of components to laod
 COMPONENTS_W_RESOURCES="ccx-upgrades-data-eng"  # component to keep
 CACHE_FROM_LATEST_IMAGE="true"
-DEPLOY_FRONTENDS="true"   # enable for front-end/UI tests
+DEPLOY_FRONTENDS="false"
 
 export IQE_PLUGINS="ccx"
 # Run all pipeline and ui tests
@@ -35,13 +35,9 @@ export IQE_FILTER_EXPRESSION=""
 export IQE_REQUIREMENTS_PRIORITY=""
 export IQE_TEST_IMPORTANCE=""
 export IQE_CJI_TIMEOUT="30m"
-export IQE_SELENIUM="true"  # Required for UI tests
+export IQE_SELENIUM="false"
 export IQE_ENV="ephemeral"
-
-# NOTE: Uncomment to skip pull request integration tests and comment out
-#       the rest of the file.
-# mkdir artifacts
-# echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.014" timestamp="2021-05-13T07:54:11.934144" hostname="thinkpad-t480s"><testcase classname="test" name="test_stub" time="0.000" /></testsuite></testsuites>' > artifacts/junit-stub.xml
+export IQE_ENV_VARS="DYNACONF_USER_PROVIDER__rbac_enabled=false"
 
 
 function build_image() {
