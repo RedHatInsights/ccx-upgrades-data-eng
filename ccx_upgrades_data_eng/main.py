@@ -1,6 +1,7 @@
 """Definition of the REST API for the inference service."""
 
 import logging
+from typing import List
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Request, status
@@ -9,7 +10,7 @@ from fastapi.responses import JSONResponse
 from ccx_upgrades_data_eng.auth import get_session_manager, SessionManagerException, TokenException
 from ccx_upgrades_data_eng.config import get_settings, Settings
 from ccx_upgrades_data_eng.inference import get_filled_inference_for_predictors
-from ccx_upgrades_data_eng.models import UpgradeApiResponse
+from ccx_upgrades_data_eng.models import ClustersList, UpgradeApiResponse
 from ccx_upgrades_data_eng.rhobs import perform_rhobs_request
 import ccx_upgrades_data_eng.metrics as metrics
 
@@ -66,3 +67,12 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     metrics.update_ccx_upgrades_risks_total(inference_result)
 
     return inference_result
+
+
+@app.post("/upgrade-risks-prediction")
+async def upgrade_risks_multi_cluster_predictions(clusters_list: ClustersList, settings: Settings = Depends(get_settings)):
+    """Return the upgrade risks predictions for the provided clusters."""
+
+    for cluster_id in clusters_list.clusters:
+        logger.info(f"Received cluster: {cluster_id}")
+        logger.debug("Getting predictors from RHOBS")

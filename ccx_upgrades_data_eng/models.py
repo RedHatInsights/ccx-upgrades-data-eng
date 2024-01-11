@@ -1,6 +1,8 @@
 """Models to be used in the REST API."""
 
 from typing import Any, List, Optional, Type
+from uuid import UUID
+
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 from datetime import datetime
 
@@ -173,3 +175,35 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
                 "upgrade_risks_predictors": EXAMPLE_PREDICTORS_WITH_URL,
             }
         }
+
+
+class UpgradeApiForMultiClusterResponse(UpgradeApiResponse):
+    """
+    UpgradeApiMultiClusterResponse is the response for the upgrade-risks-prediction endpoint for multiple clusters.
+
+    Contain the result of the prediction for each cluster: whether the upgrade will fail or not;
+    and the predictors that the model detected as actual risks.
+    """
+
+    cluster_id: str
+    prediction_status: str
+
+    class Config:  # pylint: disable=too-few-public-methods
+        """Update the configuration with an example."""
+
+        schema_extra = {
+            "example": {
+                "cluster_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                "prediction_status": "ok",
+                "upgrde_recommended": True,
+                "upgrade_risks_predictors": {
+                    "alerts": [],
+                    "operator_conditions": [],
+                },
+                "last_checked_at": "2011-15-04T00:05:23Z",
+            }
+        }
+
+
+class ClustersList(BaseModel):
+    clusters: List[UUID]
