@@ -25,6 +25,7 @@ RUN pip uninstall -y \
 
 RUN microdnf remove -y git-core openssh-clients openssh
 RUN microdnf clean all
+RUN rpm -e --nodeps krb5-libs
 
 USER 1001
 
