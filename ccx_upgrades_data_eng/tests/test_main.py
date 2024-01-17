@@ -1,6 +1,7 @@
 """Test main.py."""
 
 import os
+import json
 from unittest.mock import MagicMock, patch
 import pytest
 from datetime import datetime
@@ -158,6 +159,87 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         assert not get_filled_inference_for_predictors_mock.called
         assert response.status_code == 404
         assert "No data" in response.text
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.main.get_session_manager")
+def test_multi_cluster_endpoint_fails(get_session_manager_mock):
+    """Test multi cluster endpoint fails with wrong HTTP method."""
+    response = client.get("/upgrade-risks-prediction")
+    assert response.status_code != 200
+
+    response = client.put("/upgrade-risks-prediction")
+    assert response.status_code != 200
+
+    response = client.delete("/upgrade-risks-prediction")
+    assert response.status_code != 200
+
+    response = client.post("/upgrade-risks-prediction")
+    assert response.status_code != 200
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.main.get_session_manager")
+def test_multi_cluster_endpoint_no_clusters(get_session_manager_mock):
+    """Test multi cluster endpoint success."""
+    response = client.post(
+        "/upgrade-risks-prediction",
+        data=json.dumps({"clusters": []}),
+        content="application/json",
+    )
+    assert response.status_code == 200
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.main.get_session_manager")
+@patch("ccx_upgrades_data_eng.main.get_filled_inference_for_predictors")
+@patch("ccx_upgrades_data_eng.main.perform_rhobs_request_multi_cluster")
+def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
+    perform_rhobs_request_multi_cluster_mock,
+    get_filled_inference_for_predictors_mock,
+    get_session_manager_mock,
+):
+    """Test a request with valid data, when rhobs requests and inference works fine."""
+    test_date = datetime.now()
+
+    session_manager_mock = MagicMock()
+    get_session_manager_mock.return_value = session_manager_mock
+
+    risk_predictors = UpgradeRisksPredictors(
+        alerts=[],
+        operator_conditions=[],
+    )
+    clusters_predictions = {
+        "34c3ecc5-624a-49a5-bab8-4fdc5e51a266": (
+            risk_predictors,
+            "https://console_url.com",
+        ),
+        "2b9195d4-85d4-428f-944b-4b46f08911f8": (risk_predictors, ""),
+    }
+    perform_rhobs_request_multi_cluster_mock.return_value = clusters_predictions
+    get_filled_inference_for_predictors_mock.return_value = UpgradeApiResponse(
+        upgrade_recommended=True,
+        upgrade_risks_predictors=risk_predictors,
+        last_checked_at=test_date,
+    )
+
+    response = client.post(
+        "/upgrade-risks-prediction",
+        data=json.dumps(
+            {
+                "clusters": [
+                    "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                    "2b9195d4-85d4-428f-944b-4b46f08911f8",
+                ],
+            }
+        ),
+    )
+    content = response.json()
+
+    assert perform_rhobs_request_multi_cluster_mock.called
+    assert get_filled_inference_for_predictors_mock.call_count == 2
+    assert response.status_code == 200
+    assert len(content["predictions"]) == 2
 
 
 async def mock_call_next(request: Request):

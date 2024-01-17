@@ -13,8 +13,24 @@ from pydantic import ValidationError
 logger = logging.getLogger(__name__)
 
 
-class CustomTTLCache(TTLCache):
-    """LRU Cache with TTL for items eviction.
+class LoggedTTLCache(TTLCache):
+    """TTL Cache with log for items eviction."""
+
+    def popitem(self):
+        """Overwrite TTLCache's popitem method to log evicted keys."""
+        key, value = super().popitem()
+        logger.debug(f"Key {key} evicted")
+        print("#" * 50)
+        return key, value
+
+    def expire(self, time=None):
+        """Overwrite TTLCache's expire to add logs."""
+        logger.debug("expiring items from cache")
+        return super().expire(time)
+
+
+class CustomTTLCache(LoggedTTLCache):
+    """TTL Cache with TTL for items eviction.
 
     Use CACHE_ENABLED, CACHE_TTL, and CACHE size env vars to configure it.
     """
@@ -37,9 +53,3 @@ class CustomTTLCache(TTLCache):
             super().__init__(maxsize=maxsize, ttl=ttl)
         else:
             super().__init__(maxsize=0, ttl=0)
-
-    def popitem(self):
-        """Overwrite TTLCache's popitem method to log evicted keys."""
-        key, value = super().popitem()
-        logger.debug(f"Key {key} evicted")
-        return key, value

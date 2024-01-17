@@ -13,12 +13,14 @@ def fill_urls(response: UpgradeApiResponse, console_url: str):
         if alert.name == "":
             continue
         alert.url = urljoin(
-            console_url, f"/monitoring/alerts?orderBy=asc&sortBy=Severity&alert-name={alert.name}"
+            console_url,
+            f"/monitoring/alerts?orderBy=asc&sortBy=Severity&alert-name={alert.name}",
         )
 
     for foc in response.upgrade_risks_predictors.operator_conditions:
         if foc.name == "":
             continue
         foc.url = urljoin(
-            console_url, f"/k8s/cluster/config.openshift.io~v1~ClusterOperator/{foc.name}"
+            console_url,
+            f"/k8s/cluster/config.openshift.io~v1~ClusterOperator/{foc.name}",
         )

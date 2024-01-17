@@ -51,7 +51,8 @@ class InitializedCloudWatchLogger(logging.Handler):
         )
         missing_envs = list(
             filter(
-                lambda key: os.environ.get(key, "").strip() == "", [key for key in aws_config_vars]
+                lambda key: os.environ.get(key, "").strip() == "",
+                [key for key in aws_config_vars],
             )
         )
 
