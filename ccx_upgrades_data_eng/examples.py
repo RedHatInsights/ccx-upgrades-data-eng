@@ -5,6 +5,7 @@ ALERT_NAME = "APIRemovedInNextEUSReleaseInUse"
 FOC_NAME = "authentication"
 
 EXAMPLE_DATE = "0001-01-01T00:00:00Z"
+EXAMPLE_CLUSTER_ID = "b0b3b9ce-d3b9-4eec-b13d-241dffdb1395"
 
 EXAMPLE_ALERT = {
     "name": ALERT_NAME,

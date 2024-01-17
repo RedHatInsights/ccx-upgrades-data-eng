@@ -18,7 +18,9 @@ from ccx_upgrades_data_eng.utils import CustomTTLCache
 logger = logging.getLogger(__name__)
 
 
-def get_inference_for_predictors(risk_predictors: UpgradeRisksPredictors) -> UpgradeApiResponse:
+def get_inference_for_predictors(
+    risk_predictors: UpgradeRisksPredictors,
+) -> UpgradeApiResponse:
     """Request the inference service with a set of predictors."""
     settings = get_settings()
 

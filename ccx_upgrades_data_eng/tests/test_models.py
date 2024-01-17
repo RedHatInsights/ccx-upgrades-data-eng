@@ -1,19 +1,25 @@
 """Test models.py."""
 
+import datetime
+
 import pydantic
 import pytest
 
 from ccx_upgrades_data_eng.models import (
     Alert,
+    ClusterPrediction,
     FOC,
-    UpgradeApiResponse,
     InferenceResponse,
+    MultiClusterUpgradeApiResponse,
+    UpgradeApiResponse,
     UpgradeRisksPredictors,
+    UpgradeRisksPredictorsWithURLs,
 )
 from ccx_upgrades_data_eng.examples import (
     EXAMPLE_PREDICTORS,
     EXAMPLE_PREDICTORS_WITH_EMPTY_URL,
     EXAMPLE_DATE,
+    EXAMPLE_CLUSTER_ID,
 )
 
 
@@ -278,3 +284,58 @@ def test_inference_response():
     """Test the InferenceResponse can be created and fields are populated."""
     response = InferenceResponse(upgrade_risks_predictors=EXAMPLE_PREDICTORS)
     assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS
+
+
+def test_cluster_prediction_without_optional():
+    """Test the ClusterPrediction can be created and fields are populated."""
+    prediction = ClusterPrediction(
+        cluster_id=EXAMPLE_CLUSTER_ID,
+        prediction_status="some problem",
+    )
+
+    assert prediction.cluster_id == EXAMPLE_CLUSTER_ID
+    assert prediction.prediction_status == "some problem"
+    assert prediction.last_checked_at is None
+    assert prediction.upgrade_recommended is None
+    assert prediction.upgrade_risks_predictors is None
+
+
+def test_cluster_prediction():
+    """Test the ClusterPrediction can be created and fields are populated."""
+    prediction = ClusterPrediction(
+        cluster_id=EXAMPLE_CLUSTER_ID,
+        prediction_status="ok",
+        upgrade_recommended=False,
+        upgrade_risks_predictors=EXAMPLE_PREDICTORS,
+        last_checked_at=EXAMPLE_DATE,
+    )
+
+    assert prediction.cluster_id == EXAMPLE_CLUSTER_ID
+    assert prediction.prediction_status == "ok"
+    assert prediction.upgrade_recommended is False
+    assert prediction.upgrade_risks_predictors == UpgradeRisksPredictorsWithURLs(
+        **EXAMPLE_PREDICTORS
+    )
+    assert prediction.last_checked_at == datetime.datetime.fromisoformat(EXAMPLE_DATE)
+
+
+def test_multi_cluster_upgrade_api_response():
+    """Test the MultiClusterUpgradeApiResponse can be created and fields are populated."""
+    response = MultiClusterUpgradeApiResponse(predictions=[])
+
+    assert len(response.predictions) == 0
+
+
+def test_multi_cluster_upgrade_api_response_with_content():
+    """Test the MultiClusterUpgradeApiResponse can be created and fields are populated."""
+    prediction = ClusterPrediction(
+        cluster_id=EXAMPLE_CLUSTER_ID,
+        prediction_status="ok",
+        upgrade_recommended=False,
+        upgrade_risks_predictors=EXAMPLE_PREDICTORS,
+        last_checked_at=EXAMPLE_DATE,
+    )
+    response = MultiClusterUpgradeApiResponse(predictions=[prediction])
+
+    assert len(response.predictions) == 1
+    assert response.predictions[0] == prediction
