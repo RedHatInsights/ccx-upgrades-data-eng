@@ -81,5 +81,8 @@ def get_session_manager() -> Oauth2Manager:
     """Oauth2Manager cache."""
     settings = get_settings()
     return Oauth2Manager(
-        settings.client_id, settings.client_secret, settings.sso_issuer, settings.allow_insecure
+        settings.client_id,
+        settings.client_secret,
+        settings.sso_issuer,
+        settings.allow_insecure,
     )

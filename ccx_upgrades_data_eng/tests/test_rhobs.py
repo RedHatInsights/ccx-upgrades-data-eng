@@ -8,45 +8,32 @@ from fastapi import HTTPException
 
 from ccx_upgrades_data_eng.rhobs import (
     alerts_and_focs,
-    single_cluster_alerts_and_focs,
     perform_rhobs_request,
+    perform_rhobs_request_multi_cluster,
+    update_cache_for_cluster,
 )
-from ccx_upgrades_data_eng.tests import needed_env, RHOBS_EMPTY_REPONSE, RHOBS_RESPONSE
+from ccx_upgrades_data_eng.models import UpgradeRisksPredictors
+from ccx_upgrades_data_eng.utils import LoggedTTLCache
+
+from ccx_upgrades_data_eng.tests import (
+    needed_env,
+    RHOBS_EMPTY_REPONSE,
+    RHOBS_RESPONSE,
+    RHOBS_RESPONSE_MULTI_CLUSTER,
+)
 
 
-def test_single_cluster_alerts_and_focs():
-    """Test if single_cluster_alerts_and_focs returns the expected query."""
-    assert (
-        single_cluster_alerts_and_focs("test")
-        == """console_url{_id="test"}
-or
-alerts{_id="test", namespace=~"openshift-.*", severity=~"warning|critical"}
-or
-cluster_operator_conditions{_id="test", condition="Available"} == 0
-or
-cluster_operator_conditions{_id="test", condition="Degraded"} == 1"""
-    )
-
-
-def test_multi_cluster_alerts_and_focs():
+def test_alerts_and_focs():
     """Test if alerts_and_focs returns the expected query."""
     assert (
         alerts_and_focs(["test1", "test2"])
-        == """console_url{_id="test1"}
+        == """console_url{_id=~"test1|test2"}
 or
-alerts{_id="test1", namespace=~"openshift-.*", severity=~"warning|critical"}
+alerts{_id=~"test1|test2", namespace=~"openshift-.*", severity=~"warning|critical"}
 or
-cluster_operator_conditions{_id="test1", condition="Available"} == 0
+cluster_operator_conditions{_id=~"test1|test2", condition="Available"} == 0
 or
-cluster_operator_conditions{_id="test1", condition="Degraded"} == 1
-or
-console_url{_id="test2"}
-or
-alerts{_id="test2", namespace=~"openshift-.*", severity=~"warning|critical"}
-or
-cluster_operator_conditions{_id="test2", condition="Available"} == 0
-or
-cluster_operator_conditions{_id="test2", condition="Degraded"} == 1"""
+cluster_operator_conditions{_id=~"test1|test2", condition="Degraded"} == 1"""
     )
 
 
@@ -54,7 +41,7 @@ cluster_operator_conditions{_id="test2", condition="Degraded"} == 1"""
 @patch.dict(os.environ, needed_env)
 @patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
 def test_perform_rhobs_request_not_ok(get_session_manager_mock, response_status):
-    """Check result when RHOBS return a 404."""
+    """Check result when RHOBS return a non 200."""
     # Prepare the mocks
     rhobs_response_mock = MagicMock()
     rhobs_response_mock.status_code = response_status
@@ -164,3 +151,159 @@ def test_perform_rhobs_request_no_cluster_version(get_session_manager_mock):
 
     _, console_url = perform_rhobs_request(cluster_id)
     assert console_url == ""
+
+
+@pytest.mark.parametrize("response_status", [300, 404, 500])
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
+def test_perform_rhobs_request_multi_cluster_nok(get_session_manager_mock, response_status):
+    """Check result when RHOBS return a non 200."""
+    # repare the mocks
+    rhobs_response_mock = MagicMock()
+    rhobs_response_mock.status_code = response_status
+
+    session_mock = MagicMock()
+    session_mock.get.return_value = rhobs_response_mock
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    # Perform the request
+    cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+    result = perform_rhobs_request_multi_cluster([cluster_id])
+    assert result == dict()
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
+def test_perform_rhobs_request_multi_cluster_all_cached(get_session_manager_mock):
+    """Check result when all results are cached."""
+    # prepare mocks
+    session_mock = MagicMock()
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+    predictors = UpgradeRisksPredictors(alerts=[], operator_conditions=[])
+
+    # Re-create perform_rhobs_request cache to use enabled TTLCache
+    old_cache = perform_rhobs_request.cache
+    perform_rhobs_request.cache = LoggedTTLCache(maxsize=1, ttl=10)
+    perform_rhobs_request.cache[(cluster_id,)] = predictors, "console_url"
+
+    result = perform_rhobs_request_multi_cluster([cluster_id])
+    assert not session_mock.get.called
+    assert cluster_id in result
+
+    perform_rhobs_request.cache = old_cache
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
+def test_perform_rhobs_request_multi_cluster_empty(get_session_manager_mock):
+    """Check results when RHOBS sends OK but empty."""
+    # Prepare the mocks
+    rhobs_response_mock = MagicMock()
+    rhobs_response_mock.status_code = 200
+    rhobs_response_mock.json.return_value = RHOBS_EMPTY_REPONSE
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
+
+    session_mock = MagicMock()
+    session_mock.get.return_value = rhobs_response_mock
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    # Perform the request
+    cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+
+    result = perform_rhobs_request_multi_cluster([cluster_id])
+    assert cluster_id not in result
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
+def test_perform_rhobs_request_multi_cluster(get_session_manager_mock):
+    """Check results when RHOBS sends OK but empty."""
+    # Prepare the mocks
+    rhobs_response_mock = MagicMock()
+    rhobs_response_mock.status_code = 200
+    rhobs_response_mock.json.return_value = RHOBS_RESPONSE_MULTI_CLUSTER
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
+
+    session_mock = MagicMock()
+    session_mock.get.return_value = rhobs_response_mock
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    # Perform the request
+    clusters = [
+        "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+        "2b9195d4-85d4-428f-944b-4b46f08911f8",
+    ]
+
+    cluster_predictions = perform_rhobs_request_multi_cluster(clusters)
+
+    assert len(cluster_predictions) == 2
+    assert len(cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts) == 1
+    assert (
+        len(cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].operator_conditions) == 1
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts[0].name
+        == "APIRemovedInNextEUSReleaseInUse"
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts[0].namespace
+        == "openshift-kube-apiserver"
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts[0].severity == "info"
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].operator_conditions[0].name
+        == "authentication"
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0]
+        .operator_conditions[0]
+        .condition
+        == "Not Available"
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].operator_conditions[0].reason
+        == "OAuthServerRouteEndpointAccessibleController_EndpointUnavailable"
+    )
+    assert (
+        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][1]
+        == "https://console-openshift-console.some_url.com"
+    )
+
+
+def test_update_cache_for_cluster():
+    """Check if the RHOBS cache is updated properly."""
+    cluster_id = "dc549b77-1913-46b2-8be6-088b54fb4da6"
+    expected_predictors = UpgradeRisksPredictors(alerts=[], operator_conditions=[])
+    expected_console_url = "https://the-console-url.com"
+
+    old_cache = perform_rhobs_request.cache
+    perform_rhobs_request.cache = LoggedTTLCache(maxsize=1, ttl=1000000)
+
+    # Update the cache
+    update_cache_for_cluster(cluster_id, (expected_predictors, expected_console_url))
+
+    predictors, console_url = perform_rhobs_request.cache.get((cluster_id,))
+    perform_rhobs_request.cache = old_cache
+
+    assert predictors == expected_predictors
+    assert console_url == expected_console_url
