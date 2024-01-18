@@ -1,6 +1,8 @@
 """Models to be used in the REST API."""
 
 from typing import Any, List, Optional, Type
+from uuid import UUID
+
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
 from datetime import datetime
 
@@ -173,3 +175,60 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
                 "upgrade_risks_predictors": EXAMPLE_PREDICTORS_WITH_URL,
             }
         }
+
+
+class ClusterPrediction(BaseModel):
+    """
+    ClusterPrediction is an element of the response for the upgrade-risks-prediction endpoint for multiple clusters.
+
+    Contains the prediction for a single cluster, like UpgradeApiResponse, but including 2 extra fields: cluster_id and
+    prediction_status. The later is to indicate if the prediction was performed correctly, not the result of the
+    prediction.
+    """
+
+    cluster_id: str
+    prediction_status: str
+    upgrade_recommended: Optional[bool]
+    upgrade_risks_predictors: Optional[UpgradeRisksPredictorsWithURLs]
+    last_checked_at: Optional[datetime]
+
+
+class MultiClusterUpgradeApiResponse(BaseModel):
+    """
+    MultiClusterUpgradeApiResponse is the response for the upgrade-risks-prediction endpoint for multiple clusters.
+
+    Contain the result of the prediction for each cluster: whether the upgrade will fail or not;
+    and the predictors that the model detected as actual risks.
+    """
+
+    predictions: List[ClusterPrediction]
+
+    class Config:  # pylint: disable=too-few-public-methods
+        """Update the configuration with an example."""
+
+        schema_extra = {
+            "example": {
+                "predictions": [
+                    {
+                        "cluster_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                        "prediction_status": "ok",
+                        "upgrde_recommended": True,
+                        "upgrade_risks_predictors": {
+                            "alerts": [],
+                            "operator_conditions": [],
+                        },
+                        "last_checked_at": "2011-15-04T00:05:23Z",
+                    },
+                ],
+            }
+        }
+
+
+class ClustersList(BaseModel):
+    """
+    ClustersList is the definition for the request body for the upgrade-risk-prediction endpoint.
+
+    It allows to include an array of cluster ids from the request.
+    """
+
+    clusters: List[UUID]

@@ -65,9 +65,13 @@ def test_fill_urls_with_console_url_no_names():
         ],
     }
     response = UpgradeApiResponse(
-        upgrade_recommended=False, upgrade_risks_predictors=predictors, last_checked_at=EXAMPLE_DATE
+        upgrade_recommended=False,
+        upgrade_risks_predictors=predictors,
+        last_checked_at=EXAMPLE_DATE,
     )
     fill_urls(response, console_url="https://console-openshift-console.some_url.com")
     assert response == UpgradeApiResponse(
-        upgrade_recommended=False, upgrade_risks_predictors=expected, last_checked_at=EXAMPLE_DATE
+        upgrade_recommended=False,
+        upgrade_risks_predictors=expected,
+        last_checked_at=EXAMPLE_DATE,
     )
