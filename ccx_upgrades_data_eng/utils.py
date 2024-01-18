@@ -20,7 +20,6 @@ class LoggedTTLCache(TTLCache):
         """Overwrite TTLCache's popitem method to log evicted keys."""
         key, value = super().popitem()
         logger.debug(f"Key {key} evicted")
-        print("#" * 50)
         return key, value
 
     def expire(self, time=None):

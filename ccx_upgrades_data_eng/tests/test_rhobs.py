@@ -10,6 +10,7 @@ from ccx_upgrades_data_eng.rhobs import (
     alerts_and_focs,
     perform_rhobs_request,
     perform_rhobs_request_multi_cluster,
+    update_cache_for_cluster,
 )
 from ccx_upgrades_data_eng.models import UpgradeRisksPredictors
 from ccx_upgrades_data_eng.utils import LoggedTTLCache
@@ -287,3 +288,22 @@ def test_perform_rhobs_request_multi_cluster(get_session_manager_mock):
         cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][1]
         == "https://console-openshift-console.some_url.com"
     )
+
+
+def test_update_cache_for_cluster():
+    """Check if the RHOBS cache is updated properly."""
+    cluster_id = "dc549b77-1913-46b2-8be6-088b54fb4da6"
+    expected_predictors = UpgradeRisksPredictors(alerts=[], operator_conditions=[])
+    expected_console_url = "https://the-console-url.com"
+
+    old_cache = perform_rhobs_request.cache
+    perform_rhobs_request.cache = LoggedTTLCache(maxsize=1, ttl=1000000)
+
+    # Update the cache
+    update_cache_for_cluster(cluster_id, (expected_predictors, expected_console_url))
+
+    predictors, console_url = perform_rhobs_request.cache.get((cluster_id,))
+    perform_rhobs_request.cache = old_cache
+
+    assert predictors == expected_predictors
+    assert console_url == expected_console_url

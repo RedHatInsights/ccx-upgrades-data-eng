@@ -164,7 +164,7 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
 @patch.dict(os.environ, needed_env)
 @patch("ccx_upgrades_data_eng.main.get_session_manager")
 def test_multi_cluster_endpoint_fails(get_session_manager_mock):
-    """Test multi cluster endpoint fails with wrong HTTP method."""
+    """Test multi cluster endpoint fails with wrong HTTP request."""
     response = client.get("/upgrade-risks-prediction")
     assert response.status_code != 200
 
@@ -174,6 +174,7 @@ def test_multi_cluster_endpoint_fails(get_session_manager_mock):
     response = client.delete("/upgrade-risks-prediction")
     assert response.status_code != 200
 
+    # Missing request body
     response = client.post("/upgrade-risks-prediction")
     assert response.status_code != 200
 
@@ -230,16 +231,50 @@ def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
                 "clusters": [
                     "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
                     "2b9195d4-85d4-428f-944b-4b46f08911f8",
+                    "aae0ff10-9892-4572-b77f-73eb3e39825f",  # Cluster not in RHOBS
                 ],
             }
         ),
     )
     content = response.json()
 
+    expected_elements_in_result_array = [
+        {
+            "cluster_id": "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+            "prediction_status": "ok",
+            "upgrade_recommended": True,
+            "upgrade_risks_predictors": {
+                "alerts": [],
+                "operator_conditions": [],
+            },
+            "last_checked_at": test_date.isoformat(),
+        },
+        {
+            "cluster_id": "2b9195d4-85d4-428f-944b-4b46f08911f8",
+            "prediction_status": "ok",
+            "upgrade_recommended": True,
+            "upgrade_risks_predictors": {
+                "alerts": [],
+                "operator_conditions": [],
+            },
+            "last_checked_at": test_date.isoformat(),
+        },
+        {
+            "cluster_id": "aae0ff10-9892-4572-b77f-73eb3e39825f",
+            "prediction_status": "No data for the cluster",
+            "upgrade_recommended": None,
+            "upgrade_risks_predictors": None,
+            "last_checked_at": None,
+        },
+    ]
+
     assert perform_rhobs_request_multi_cluster_mock.called
     assert get_filled_inference_for_predictors_mock.call_count == 2
     assert response.status_code == 200
-    assert len(content["predictions"]) == 2
+    assert len(content["predictions"]) == 3
+
+    for expected_element_in_result in expected_elements_in_result_array:
+        assert expected_element_in_result in content["predictions"]
 
 
 async def mock_call_next(request: Request):
