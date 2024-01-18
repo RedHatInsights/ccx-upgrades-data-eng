@@ -240,6 +240,13 @@ RHOBS_RESPONSE_MULTI_CLUSTER = {
                 },
                 "value": [1677825120.237, "1"],
             },
+            # Missing the url
+            {
+                "metric": {
+                    "__name__": "console_url",
+                    "_id": "2b9195d4-85d4-428f-944b-4b46f08911f8",
+                }
+            },
         ],
     },
 }
