@@ -103,6 +103,8 @@ async def upgrade_risks_multi_cluster_predictions(
                 last_checked_at=inference_result.last_checked_at,
             ),
         )
+        metrics.update_ccx_upgrades_prediction_total(inference_result)
+        metrics.update_ccx_upgrades_risks_total(inference_result)
 
     for cluster in clusters_list.clusters:
         if str(cluster) in predictors_per_cluster:
