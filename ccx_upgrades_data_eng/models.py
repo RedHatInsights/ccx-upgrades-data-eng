@@ -212,7 +212,7 @@ class MultiClusterUpgradeApiResponse(BaseModel):
                     {
                         "cluster_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
                         "prediction_status": "ok",
-                        "upgrde_recommended": True,
+                        "upgrade_recommended": True,
                         "upgrade_risks_predictors": {
                             "alerts": [],
                             "operator_conditions": [],
