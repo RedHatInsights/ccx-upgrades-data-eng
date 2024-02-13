@@ -2,10 +2,11 @@
 
 import os
 import json
-from unittest.mock import MagicMock, patch
-import pytest
 from datetime import datetime
+from unittest.mock import MagicMock, patch
+from uuid import UUID
 
+import pytest
 from fastapi import HTTPException, Request
 from fastapi.testclient import TestClient
 from fastapi.responses import JSONResponse
@@ -211,11 +212,11 @@ def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
         operator_conditions=[],
     )
     clusters_predictions = {
-        "34c3ecc5-624a-49a5-bab8-4fdc5e51a266": (
+        UUID("34c3ecc5-624a-49a5-bab8-4fdc5e51a266"): (
             risk_predictors,
             "https://console_url.com",
         ),
-        "2b9195d4-85d4-428f-944b-4b46f08911f8": (risk_predictors, ""),
+        UUID("2b9195d4-85d4-428f-944b-4b46f08911f8"): (risk_predictors, ""),
     }
     perform_rhobs_request_multi_cluster_mock.return_value = clusters_predictions
     get_filled_inference_for_predictors_mock.return_value = UpgradeApiResponse(

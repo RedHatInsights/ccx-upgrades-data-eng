@@ -179,6 +179,7 @@ def perform_rhobs_request_multi_cluster(
                 predictors[cluster_id].operator_conditions.append(FOC.parse_metric(metric))
 
     for cluster_id in predictors:
+        cluster_id_as_uuid = UUID(cluster_id)
         console_url = console_urls.get(cluster_id, "")
         prediction = predictors.get(
             cluster_id,
@@ -188,9 +189,9 @@ def perform_rhobs_request_multi_cluster(
             ),
         )
 
-        clusters_results[cluster_id] = prediction, console_url
+        clusters_results[cluster_id_as_uuid] = prediction, console_url
         update_cache_for_cluster(
-            cluster_id, clusters_results[cluster_id]
+            cluster_id_as_uuid, clusters_results[cluster_id_as_uuid]
         )  # Update single cluster cache
 
     return clusters_results
