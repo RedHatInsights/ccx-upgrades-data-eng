@@ -2,6 +2,7 @@
 
 import os
 from unittest.mock import MagicMock, patch
+from uuid import UUID
 
 import pytest
 from fastapi import HTTPException
@@ -246,48 +247,30 @@ def test_perform_rhobs_request_multi_cluster(get_session_manager_mock):
 
     get_session_manager_mock.return_value = session_manager_mock
 
+    uuid_ok = UUID("34c3ecc5-624a-49a5-bab8-4fdc5e51a266")
+    uuid_missing = UUID("2b9195d4-85d4-428f-944b-4b46f08911f8")
+
     # Perform the request
     clusters = [
-        "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
-        "2b9195d4-85d4-428f-944b-4b46f08911f8",
+        uuid_ok,
+        uuid_missing,
     ]
 
     cluster_predictions = perform_rhobs_request_multi_cluster(clusters)
 
     assert len(cluster_predictions) == 2
-    assert len(cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts) == 1
+    assert len(cluster_predictions[uuid_ok][0].alerts) == 1
+    assert len(cluster_predictions[uuid_ok][0].operator_conditions) == 1
+    assert cluster_predictions[uuid_ok][0].alerts[0].name == "APIRemovedInNextEUSReleaseInUse"
+    assert cluster_predictions[uuid_ok][0].alerts[0].namespace == "openshift-kube-apiserver"
+    assert cluster_predictions[uuid_ok][0].alerts[0].severity == "info"
+    assert cluster_predictions[uuid_ok][0].operator_conditions[0].name == "authentication"
+    assert cluster_predictions[uuid_ok][0].operator_conditions[0].condition == "Not Available"
     assert (
-        len(cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].operator_conditions) == 1
-    )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts[0].name
-        == "APIRemovedInNextEUSReleaseInUse"
-    )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts[0].namespace
-        == "openshift-kube-apiserver"
-    )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].alerts[0].severity == "info"
-    )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].operator_conditions[0].name
-        == "authentication"
-    )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0]
-        .operator_conditions[0]
-        .condition
-        == "Not Available"
-    )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][0].operator_conditions[0].reason
+        cluster_predictions[uuid_ok][0].operator_conditions[0].reason
         == "OAuthServerRouteEndpointAccessibleController_EndpointUnavailable"
     )
-    assert (
-        cluster_predictions["34c3ecc5-624a-49a5-bab8-4fdc5e51a266"][1]
-        == "https://console-openshift-console.some_url.com"
-    )
+    assert cluster_predictions[uuid_ok][1] == "https://console-openshift-console.some_url.com"
 
 
 def test_update_cache_for_cluster():
