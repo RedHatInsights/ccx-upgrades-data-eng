@@ -69,10 +69,10 @@ objects:
           resources:
             limits:
               cpu: "${CPU_LIMIT}"
-              memory: 400Mi
+              memory: "${MEMORY_LIMIT}"
             requests:
               cpu: "${CPU_REQUEST}"
-              memory: 200Mi
+              memory: "${MEMORY_REQUEST}"
           env:
             - name: CLIENT_ID
               valueFrom:
@@ -240,6 +240,10 @@ parameters:
   value: '100m'
 - name: CPU_LIMIT
   value: '250m'
+- name: MEMORY_REQUEST
+  value: '200Mi'
+- name: MEMORY_LIMIT
+  value: '400Mi'
 - description: ClowdEnv Name
   name: ENV_NAME
   required: true
