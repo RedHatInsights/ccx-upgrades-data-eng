@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8-minimal:latest
+FROM registry.access.redhat.com/ubi9-minimal:latest
 
 ENV VENV=/ccx-upgrades-data-eng-venv\
     HOME=/ccx-upgrades-data-eng
@@ -11,7 +11,7 @@ COPY . $HOME
 
 ENV PATH="$VENV/bin:$PATH"
 
-RUN python -m venv $VENV
+RUN python3.11 -m venv $VENV
 RUN pip install --verbose --no-cache-dir -U pip setuptools wheel
 RUN pip install --verbose --no-cache-dir -r requirements.txt
 RUN pip install .
@@ -23,9 +23,9 @@ RUN pip uninstall -y \
     py \
     pip
 
-RUN microdnf remove -y git-core openssh-clients openssh
+RUN microdnf remove -y git-core
 RUN microdnf clean all
-RUN rpm -e --nodeps krb5-libs
+RUN rpm -e --nodeps sqlite-libs krb5-libs libxml2 readline pam openssh openssh-clients
 
 USER 1001
 
