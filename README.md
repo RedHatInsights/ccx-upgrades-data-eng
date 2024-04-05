@@ -58,8 +58,27 @@ mocked service, please check how it's done in the [docker-compose.yml](docker-co
 
 Then run some requests against the server:
 
-```
+```sh
 curl 'http://127.0.0.1:8000/cluster/34c3ecc5-624a-49a5-bab8-4fdc5e51a266/upgrade-risks-prediction'
+```
+
+or
+
+```sh
+curl -s -X POST http://127.0.0.1:8000/upgrade-risks-prediction \
+    -H 'accept: application/json' \
+    -H 'Content-Type: application/json' -d '{
+    "clusters":[
+        "3a87e224-c878-4f54-91cf-3f1900609207",
+        "a994b868-4878-477a-8f8d-dbddb3130ed3",
+        "8f7f87e7-cfda-4b55-8517-8d7a089b92f9",
+        "31a13183-4b7e-4dbc-b82b-da2f38ebad81",
+        "0bd797c7-8040-4493-88e9-db58b80954de",
+        "0d6dea79-fbaf-4a04-87a3-18d48494e9cb",
+        "db1af8c8-6d69-40ae-a4f9-5fcb81499700",
+        "4e550916-1d7b-4434-afec-6125088566d3"
+    ]
+}'
 ```
 
 Check the API documentation at http://127.0.0.1:8000/docs or http://127.0.0.1:8000/redoc.
