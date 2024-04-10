@@ -250,3 +250,9 @@ RHOBS_RESPONSE_MULTI_CLUSTER = {
         ],
     },
 }
+
+# [CCXDEV-12718] Strange result observed in ephemeral
+RHOBS_RESPONSE_NONE_RESULT = {
+    "status": "success",
+    "data": {"resultType": "vector", "result": None},
+}
