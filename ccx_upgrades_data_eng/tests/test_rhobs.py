@@ -21,6 +21,7 @@ from ccx_upgrades_data_eng.tests import (
     RHOBS_EMPTY_REPONSE,
     RHOBS_RESPONSE,
     RHOBS_RESPONSE_MULTI_CLUSTER,
+    RHOBS_RESPONSE_NONE_RESULT,
 )
 
 
@@ -290,3 +291,35 @@ def test_update_cache_for_cluster():
 
     assert predictors == expected_predictors
     assert console_url == expected_console_url
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
+def test_rhobs_result_none(get_session_manager_mock):
+    """Check results when RHOBS sends ok with None result."""
+    # Prepare the mocks
+    rhobs_response_mock = MagicMock()
+    rhobs_response_mock.status_code = 200
+    rhobs_response_mock.json.return_value = RHOBS_RESPONSE_NONE_RESULT
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
+
+    session_mock = MagicMock()
+    session_mock.get.return_value = rhobs_response_mock
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    uuid_ok = UUID("34c3ecc5-624a-49a5-bab8-4fdc5e51a266")
+    uuid_missing = UUID("2b9195d4-85d4-428f-944b-4b46f08911f8")
+
+    # Perform the request
+    clusters = [
+        uuid_ok,
+        uuid_missing,
+    ]
+
+    cluster_predictions = perform_rhobs_request_multi_cluster(clusters)
+
+    assert len(cluster_predictions) == 0
