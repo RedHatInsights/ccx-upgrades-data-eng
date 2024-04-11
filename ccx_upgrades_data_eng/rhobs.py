@@ -135,13 +135,13 @@ def perform_rhobs_request_multi_cluster(
 
     query = alerts_and_focs(missing_clusters)
     response = query_rhobs_endpoint(query)
+    results = response.json().get("data", {}).get("result", [])
 
-    if response.status_code != 200:
+    if response.status_code != 200 or results is None:
         logger.debug("Observatorium response status code: %s", response.status_code)
         logger.debug("Observatorium response text: %s", response.text)
         return clusters_results  # returning only cached results
 
-    results = response.json().get("data", {}).get("result", [])
     console_urls = {}
     predictors = {}
 
