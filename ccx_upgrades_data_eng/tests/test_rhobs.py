@@ -84,10 +84,8 @@ def test_perform_rhobs_request_empty(get_session_manager_mock):
     # Perform the request
     cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
 
-    predictors, console_url = perform_rhobs_request(cluster_id)
-    assert len(predictors.alerts) == 0
-    assert len(predictors.operator_conditions) == 0
-    assert console_url == ""
+    result = perform_rhobs_request(cluster_id)
+    assert result is None
 
 
 @patch.dict(os.environ, needed_env)

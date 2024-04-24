@@ -79,6 +79,10 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
     logger.debug("Observatorium response results: %s", results)
     metrics.update_ccx_upgrades_rhobs_time(response.elapsed.total_seconds())
 
+    # Differ between empty metrics and situation with no data for the cluster in RHOBS
+    if len(results) == 0:
+        return None
+
     alerts = set()
     focs = set()
 
