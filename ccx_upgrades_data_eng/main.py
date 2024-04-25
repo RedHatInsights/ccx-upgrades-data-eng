@@ -69,17 +69,11 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     """Return the predition of an upgrade failure given a set of alerts and focs."""
     logger.info(f"Received cluster: {cluster_id}")
     logger.debug("Getting predictors from RHOBS")
-    result = perform_rhobs_request(cluster_id)
-
-    predictors = None
-    console_url = None
-    if result is not None:
-        predictors, console_url = result
+    predictors, console_url = perform_rhobs_request(cluster_id)
 
     if console_url is None or console_url == "":
         return JSONResponse("No data for this cluster", status_code=status.HTTP_404_NOT_FOUND)
 
-    predictors, console_url = result
     logger.debug("Getting inference result")
     inference_result = get_filled_inference_for_predictors(predictors, console_url)
 
