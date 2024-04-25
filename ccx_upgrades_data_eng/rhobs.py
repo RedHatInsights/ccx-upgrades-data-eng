@@ -79,6 +79,10 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
     logger.debug("Observatorium response results: %s", results)
     metrics.update_ccx_upgrades_rhobs_time(response.elapsed.total_seconds())
 
+    # Differ between empty metrics and situation with no data for the cluster in RHOBS
+    if len(results) == 0:
+        return (None, None)
+
     alerts = set()
     focs = set()
 
@@ -124,9 +128,11 @@ def perform_rhobs_request_multi_cluster(
     for cluster_id in clusters:
         cached_result = perform_rhobs_request.cache.get((cluster_id,))
         if cached_result:
-            logger.debug("Using cached result for cluster %s", cluster_id)
-            clusters_results[cluster_id] = cached_result
-            continue
+            _, console_url = cached_result
+            if console_url is not None:
+                logger.debug("Using cached result for cluster %s", cluster_id)
+                clusters_results[cluster_id] = cached_result
+                continue
 
         missing_clusters.add(cluster_id)
 

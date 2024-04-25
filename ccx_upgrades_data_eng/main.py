@@ -70,7 +70,8 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
     logger.info(f"Received cluster: {cluster_id}")
     logger.debug("Getting predictors from RHOBS")
     predictors, console_url = perform_rhobs_request(cluster_id)
-    if console_url == "":
+
+    if console_url is None or console_url == "":
         return JSONResponse("No data for this cluster", status_code=status.HTTP_404_NOT_FOUND)
 
     logger.debug("Getting inference result")
