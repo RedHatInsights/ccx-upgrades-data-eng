@@ -333,10 +333,10 @@ def test_perform_rhobs_request_multi_cluster_after_single_cluster_empty(get_sess
     """Check RHOBS multi cluster response after cached no data single cluster response."""
     # RHOBS functions need to be reloaded because cache
     # has to be initialized with correct env variables
-    importlib.reload(sys.modules['ccx_upgrades_data_eng.rhobs'])
+    importlib.reload(sys.modules["ccx_upgrades_data_eng.rhobs"])
     from ccx_upgrades_data_eng.rhobs import (
         perform_rhobs_request,
-        perform_rhobs_request_multi_cluster
+        perform_rhobs_request_multi_cluster,
     )
 
     # Prepare the mocks
