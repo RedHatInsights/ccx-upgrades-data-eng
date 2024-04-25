@@ -1,6 +1,8 @@
 """Tests for the rhobs module."""
 
+import importlib
 import os
+import sys
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -18,6 +20,7 @@ from ccx_upgrades_data_eng.utils import LoggedTTLCache
 
 from ccx_upgrades_data_eng.tests import (
     needed_env,
+    needed_env_cache_enabled,
     RHOBS_EMPTY_REPONSE,
     RHOBS_RESPONSE,
     RHOBS_RESPONSE_MULTI_CLUSTER,
@@ -85,9 +88,8 @@ def test_perform_rhobs_request_empty(get_session_manager_mock):
     cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
 
     predictors, console_url = perform_rhobs_request(cluster_id)
-    assert len(predictors.alerts) == 0
-    assert len(predictors.operator_conditions) == 0
-    assert console_url == ""
+    assert predictors is None
+    assert console_url is None
 
 
 @patch.dict(os.environ, needed_env)
@@ -323,3 +325,48 @@ def test_rhobs_result_none(get_session_manager_mock):
     cluster_predictions = perform_rhobs_request_multi_cluster(clusters)
 
     assert len(cluster_predictions) == 0
+
+
+@patch.dict(os.environ, needed_env_cache_enabled)
+@patch("ccx_upgrades_data_eng.auth.get_session_manager")
+def test_perform_rhobs_request_multi_cluster_after_single_cluster_empty(get_session_manager_mock):
+    """Check RHOBS multi cluster response after cached no data single cluster response."""
+    # RHOBS functions need to be reloaded because cache
+    # has to be initialized with correct env variables
+    importlib.reload(sys.modules["ccx_upgrades_data_eng.rhobs"])
+    from ccx_upgrades_data_eng.rhobs import (
+        perform_rhobs_request,
+        perform_rhobs_request_multi_cluster,
+    )
+
+    # Prepare the mocks
+    rhobs_response_mock = MagicMock()
+    rhobs_response_mock.status_code = 200
+    rhobs_response_mock.json.return_value = RHOBS_EMPTY_REPONSE
+    rhobs_response_mock.elapsed.total_seconds.return_value = 1
+
+    session_mock = MagicMock()
+    session_mock.get.return_value = rhobs_response_mock
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    # Perform the single cluster RHOBS request
+    cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+    predictions, console_url = perform_rhobs_request(cluster_id)
+    assert predictions is None
+    assert console_url is None
+
+    # Check the cache contains expected values
+    cached_result = perform_rhobs_request.cache.get((cluster_id,))
+    assert cached_result is not None
+
+    cached_predictions, cached_console_url = cached_result
+    assert cached_predictions is None
+    assert cached_console_url is None
+
+    # Perform the multi cluster RHOBS request using cached result
+    result = perform_rhobs_request_multi_cluster([cluster_id])
+    assert cluster_id not in result
