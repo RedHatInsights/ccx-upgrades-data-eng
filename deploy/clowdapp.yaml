@@ -132,6 +132,14 @@ objects:
                   name: cloudwatch
                   key: aws_secret_access_key
                   optional: true
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  key: dsn
+                  name: ccx-upgrades-data-eng-dsn
+                  optional: true
+            - name: SENTRY_ENVIRONMENT
+              value: ${ENV_NAME}
             # Just for ephemeral testing
             - name: ALLOW_INSECURE
               value: ${ALLOW_INSECURE}
