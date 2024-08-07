@@ -1,6 +1,7 @@
 """Definition of the REST API for the inference service."""
 
 import logging
+import os
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Request, status
@@ -23,6 +24,7 @@ from ccx_upgrades_data_eng.rhobs import (
     perform_rhobs_request,
     perform_rhobs_request_multi_cluster,
 )
+from ccx_upgrades_data_eng.sentry import init_sentry
 import ccx_upgrades_data_eng.metrics as metrics
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -30,6 +32,8 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
+
+init_sentry(os.environ.get("SENTRY_DSN", None), None, os.environ.get("SENTRY_ENVIRONMENT", None))
 
 
 @app.on_event("startup")
