@@ -1,4 +1,4 @@
-"""Utilities ysed in the other modules of this package."""
+"""Utilities used in the other modules of this package."""
 
 import asyncio
 from functools import wraps
@@ -76,45 +76,47 @@ def retry_with_exponential_backoff(
     """
 
     def decorator(func):
-        # Check if the function is async
-        if asyncio.iscoroutinefunction(func):
-            # Async wrapper
-            @wraps(func)
-            async def async_wrapper(*args, **kwargs):
-                for attempt in range(1, max_attempts + 1):
-                    try:
-                        logger.debug(f"Attempt {attempt} of {max_attempts}")
-                        return await func(*args, **kwargs)  # Await the async function
-                    except Exception as e:
-                        if attempt == max_attempts:
-                            logger.debug(f"Max retries reached: {attempt}")
-                            raise e
-                        delay = min(
-                            base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay
-                        )
-                        logger.debug(f"Retrying in {delay} seconds...")
-                        await asyncio.sleep(delay)
+        def calculate_delay(attempt):
+            return min(base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay)
 
-            return async_wrapper
-        else:
-            # Sync wrapper
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                for attempt in range(1, max_attempts + 1):
-                    try:
-                        logger.debug(f"Attempt {attempt} of {max_attempts}")
-                        return func(*args, **kwargs)
-                    except Exception as e:
-                        if attempt == max_attempts:
-                            logger.debug(f"Max retries reached: {attempt}")
-                            raise e
-                        delay = min(
-                            base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay
-                        )
-                        logger.debug(f"Retrying in {delay} seconds... (attempt {attempt})")
-                        time.sleep(delay)
+        def log_attempt(attempt):
+            logger.debug(f"Attempt {attempt} of {max_attempts}")
 
-            return wrapper
+        def log_retry(delay):
+            logger.debug(f"Retrying in {delay} seconds...")
+
+        def log_max_retries(attempt):
+            logger.debug(f"Max retries reached: {attempt}")
+
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    log_attempt(attempt)
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_attempts:
+                        log_max_retries(attempt)
+                        raise e
+                    delay = calculate_delay(attempt)
+                    log_retry(delay)
+                    await asyncio.sleep(delay)
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    log_attempt(attempt)
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_attempts:
+                        log_max_retries(attempt)
+                        raise e
+                    delay = calculate_delay(attempt)
+                    log_retry(delay)
+                    time.sleep(delay)
+
+        return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
 
     return decorator
 
