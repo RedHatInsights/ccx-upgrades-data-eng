@@ -28,7 +28,7 @@ from ccx_upgrades_data_eng.sentry import init_sentry
 import ccx_upgrades_data_eng.metrics as metrics
 
 from prometheus_fastapi_instrumentator import Instrumentator
-from ccx_upgrades_data_eng.utils import retry_with_exponential_backoff
+from ccx_upgrades_data_eng.utils import get_retry_decorator
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
@@ -44,7 +44,7 @@ async def expose_metrics():
     logger.info("Metrics available at /metrics")
 
 
-@retry_with_exponential_backoff(max_attempts=5, base_delay=1, max_delay=30)
+@get_retry_decorator()
 async def get_session_and_refresh_token():
     """Initialize the session manager and refresh the token."""
     session_manager = get_session_manager()

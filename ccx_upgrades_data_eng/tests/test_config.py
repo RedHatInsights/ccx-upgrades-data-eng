@@ -47,6 +47,9 @@ def test_default_settings_not_set():
     assert settings.cache_enabled is False
     assert settings.cache_ttl == 0
     assert settings.cache_size == 128
+    assert settings.sso_retry_max_attempts == 5
+    assert settings.sso_retry_base_delay == 1
+    assert settings.sso_retry_max_delay == 30
 
 
 def test_get_settings_from_env():
@@ -70,6 +73,12 @@ def test_get_settings_from_env():
         "CACHE_SIZE": "10",
     }
 
+    os.environ.update({
+        "SSO_RETRY_MAX_ATTEMPTS": "3",
+        "SSO_RETRY_BASE_DELAY": "2",
+        "SSO_RETRY_MAX_DELAY": "60",
+    })
+
     settings = get_settings()
 
     # clear the envs so that we don't interfere with other tests
@@ -87,3 +96,6 @@ def test_get_settings_from_env():
     assert settings.cache_enabled
     assert settings.cache_ttl == 30
     assert settings.cache_size == 10
+    assert settings.sso_retry_max_attempts == 3
+    assert settings.sso_retry_base_delay == 2
+    assert settings.sso_retry_max_delay == 60
