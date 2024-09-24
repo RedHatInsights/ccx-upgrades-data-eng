@@ -73,11 +73,13 @@ def test_get_settings_from_env():
         "CACHE_SIZE": "10",
     }
 
-    os.environ.update({
-        "SSO_RETRY_MAX_ATTEMPTS": "3",
-        "SSO_RETRY_BASE_DELAY": "2",
-        "SSO_RETRY_MAX_DELAY": "60",
-    })
+    os.environ.update(
+        {
+            "SSO_RETRY_MAX_ATTEMPTS": "3",
+            "SSO_RETRY_BASE_DELAY": "2",
+            "SSO_RETRY_MAX_DELAY": "60",
+        }
+    )
 
     settings = get_settings()
 

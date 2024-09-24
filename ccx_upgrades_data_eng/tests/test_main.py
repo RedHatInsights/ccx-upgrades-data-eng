@@ -6,7 +6,6 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
-import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
