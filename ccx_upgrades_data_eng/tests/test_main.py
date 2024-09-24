@@ -6,16 +6,10 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
-import pytest
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from fastapi.responses import JSONResponse
 
-from ccx_upgrades_data_eng.main import (
-    app,
-    refresh_sso_token,
-)
-from ccx_upgrades_data_eng.auth import SessionManagerException, TokenException
+from ccx_upgrades_data_eng.main import app
 from ccx_upgrades_data_eng.models import UpgradeApiResponse, UpgradeRisksPredictors
 from ccx_upgrades_data_eng.tests import needed_env
 
@@ -276,58 +270,3 @@ def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
 
     for expected_element_in_result in expected_elements_in_result_array:
         assert expected_element_in_result in content["predictions"]
-
-
-async def mock_call_next(request: Request):
-    """Mock the call_next function in the refresh_sso_token middleware."""
-    return JSONResponse("test", status_code=200)
-
-
-@pytest.mark.asyncio
-@patch.dict(os.environ, needed_env)
-@patch("ccx_upgrades_data_eng.main.get_session_manager")
-async def test_refresh_sso_token_session_ok(get_session_manager_mock):
-    """Check that refresh_sso_token tries to get the session and refresh the token."""
-    session_manager_mock = MagicMock()
-    get_session_manager_mock.return_value = session_manager_mock
-
-    resp = await refresh_sso_token(Request({"type": "http"}), mock_call_next)
-
-    assert get_session_manager_mock.called
-    assert session_manager_mock.refresh_token.called
-
-    assert resp.status_code == 200
-
-
-@pytest.mark.asyncio
-@patch.dict(os.environ, needed_env)
-@patch("ccx_upgrades_data_eng.main.get_session_manager")
-async def test_refresh_sso_token_session_manager_exception(get_session_manager_mock):
-    """Check that refresh_sso_token tries to get the session and refresh the token."""
-    session_manager_mock = MagicMock()
-    get_session_manager_mock.side_effect = SessionManagerException("test")
-    get_session_manager_mock.return_value = session_manager_mock
-
-    resp = await refresh_sso_token(Request({"type": "http"}), mock_call_next)
-
-    assert get_session_manager_mock.called
-    assert not session_manager_mock.refresh_token.called
-
-    assert resp.status_code == 503
-
-
-@pytest.mark.asyncio
-@patch.dict(os.environ, needed_env)
-@patch("ccx_upgrades_data_eng.main.get_session_manager")
-async def test_refresh_sso_token_token_exception(get_session_manager_mock):
-    """Check that refresh_sso_token tries to get the session and refresh the token."""
-    session_manager_mock = MagicMock()
-    session_manager_mock.refresh_token.side_effect = TokenException("test")
-    get_session_manager_mock.return_value = session_manager_mock
-
-    resp = await refresh_sso_token(Request({"type": "http"}), mock_call_next)
-
-    assert get_session_manager_mock.called
-    assert session_manager_mock.refresh_token.called
-
-    assert resp.status_code == 503

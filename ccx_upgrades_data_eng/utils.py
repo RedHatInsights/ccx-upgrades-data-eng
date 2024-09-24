@@ -1,7 +1,11 @@
-"""Utilities ysed in the other modules of this package."""
+"""Utilities used in the other modules of this package."""
 
+import asyncio
+from functools import wraps
 from cachetools import TTLCache
 import logging
+import time
+import random
 from ccx_upgrades_data_eng.config import (
     get_settings,
     DEFAULT_CACHE_ENABLED,
@@ -11,6 +15,10 @@ from ccx_upgrades_data_eng.config import (
 from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_SSO_RETRY_MAX_ATTEMPTS = 5
+DEFAULT_SSO_RETRY_BASE_DELAY = 1
+DEFAULT_SSO_RETRY_MAX_DELAY = 30
 
 
 class LoggedTTLCache(TTLCache):
@@ -52,3 +60,110 @@ class CustomTTLCache(LoggedTTLCache):
             super().__init__(maxsize=maxsize, ttl=ttl)
         else:
             super().__init__(maxsize=0, ttl=0)
+
+
+def calculate_delay(
+    attempt, base_delay=DEFAULT_SSO_RETRY_BASE_DELAY, max_delay=DEFAULT_SSO_RETRY_MAX_DELAY
+):
+    """
+    Calculate the delay for the given attempt using exponential backoff.
+
+    :param attempt: The current attempt number
+    :param base_delay: The base delay in seconds
+    :param max_delay: The maximum delay in seconds
+    :return: The calculated delay in seconds
+    """
+    return min(base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay)
+
+
+def log_attempt(attempt, max_attempts):
+    """
+    Log the current attempt number.
+
+    :param attempt: The current attempt number
+    :param max_attempts: The maximum number of attempts
+    """
+    logger.debug(f"Attempt {attempt} of {max_attempts}")
+
+
+def log_retry(delay):
+    """
+    Log the retry delay.
+
+    :param delay: The delay in seconds
+    """
+    logger.debug(f"Retrying in {delay} seconds...")
+
+
+def log_max_retries(attempt):
+    """
+    Log that the maximum number of retries has been reached.
+
+    :param attempt: The current attempt number
+    """
+    logger.debug(f"Max retries reached: {attempt}")
+
+
+def retry_with_exponential_backoff(
+    max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS,
+    base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
+    max_delay=DEFAULT_SSO_RETRY_MAX_DELAY,
+):
+    """
+    Decorate a function with exponential backoff on any exception.
+
+    :param max_attempts: Maximum number of retry attempts
+    :param base_delay: Initial delay between retries in seconds
+    :param max_delay: Maximum delay between retries in seconds
+    """
+
+    def decorator(func):
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    log_attempt(attempt, max_attempts)
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    if attempt >= max_attempts:
+                        log_max_retries(attempt)
+                        raise e
+                    delay = calculate_delay(attempt, base_delay, max_delay)
+                    log_retry(delay)
+                    await asyncio.sleep(delay)
+
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    log_attempt(attempt, max_attempts)
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt >= max_attempts:
+                        log_max_retries(attempt)
+                        raise e
+                    delay = calculate_delay(attempt, base_delay, max_delay)
+                    log_retry(delay)
+                    time.sleep(delay)
+
+        return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
+    return decorator
+
+
+def get_retry_decorator():
+    """Get the retry decorator with current settings."""
+    try:
+        settings = get_settings()
+        return retry_with_exponential_backoff(
+            max_attempts=settings.sso_retry_max_attempts,
+            base_delay=settings.sso_retry_base_delay,
+            max_delay=settings.sso_retry_max_delay,
+        )
+    except ValidationError:
+        logger.debug("Settings not loaded yet. Using default values")
+        return retry_with_exponential_backoff(
+            max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS,
+            base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
+            max_delay=DEFAULT_SSO_RETRY_MAX_DELAY,
+        )
