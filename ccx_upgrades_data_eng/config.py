@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     client_secret: str
     sso_issuer: str = RH_OAUTH_ISSUER
     allow_insecure: bool = False
+    sso_retry_max_attempts: int = 5
+    sso_retry_base_delay: int = 1
+    sso_retry_max_delay: int = 30
 
     # Observatorium configuration
     rhobs_url: str = RHOBS_URL

@@ -16,6 +16,9 @@ from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_SSO_RETRY_MAX_ATTEMPTS = 5
+DEFAULT_SSO_RETRY_BASE_DELAY = 1
+DEFAULT_SSO_RETRY_MAX_DELAY = 30
 
 class LoggedTTLCache(TTLCache):
     """TTL Cache with log for items eviction."""
@@ -58,7 +61,7 @@ class CustomTTLCache(LoggedTTLCache):
             super().__init__(maxsize=0, ttl=0)
 
 
-def retry_with_exponential_backoff(max_attempts=5, base_delay=1, max_delay=30):
+def retry_with_exponential_backoff(max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS, base_delay=DEFAULT_SSO_RETRY_BASE_DELAY, max_delay=DEFAULT_SSO_RETRY_MAX_DELAY):
     """
     Decorate a function with exponential backoff on any exception.
 
@@ -103,3 +106,23 @@ def retry_with_exponential_backoff(max_attempts=5, base_delay=1, max_delay=30):
             return wrapper
 
     return decorator
+
+
+def get_retry_decorator():
+    """Get the retry decorator with current settings."""
+    try:
+        settings = get_settings()
+        return retry_with_exponential_backoff(
+            max_attempts=settings.sso_retry_max_attempts,
+            base_delay=settings.sso_retry_base_delay,
+            max_delay=settings.sso_retry_max_delay
+        )
+    except ValidationError:
+        logger.debug("Settings not loaded yet. Using default values")
+        return retry_with_exponential_backoff(
+            max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS,
+            base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
+            max_delay=DEFAULT_SSO_RETRY_MAX_DELAY
+        )
+
+    
