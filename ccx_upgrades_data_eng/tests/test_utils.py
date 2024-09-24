@@ -1,9 +1,10 @@
 """Tests for utils module."""
 
+from random import seed
 from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
 
-from ccx_upgrades_data_eng.utils import LoggedTTLCache, retry_with_exponential_backoff
+import ccx_upgrades_data_eng.utils as utils
 
 
 # ----------------------------------------------------------------------
@@ -12,7 +13,7 @@ from ccx_upgrades_data_eng.utils import LoggedTTLCache, retry_with_exponential_b
 @patch("ccx_upgrades_data_eng.utils.logger")
 def test_logged_ttl_cache_popitem(logger_mock):
     """Test the LoggedTTLCache class."""
-    cache = LoggedTTLCache(maxsize=1, ttl=10)
+    cache = utils.LoggedTTLCache(maxsize=1, ttl=10)
 
     cache[0] = 0
     key, value = cache.popitem()
@@ -29,7 +30,7 @@ def test_retry_with_exponential_backoff_success():
     """Test that the function succeeds without retries."""
     mock_func = MagicMock(return_value="success")
 
-    decorated_func = retry_with_exponential_backoff()(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff()(mock_func)
     result = decorated_func()
 
     assert result == "success"
@@ -41,7 +42,7 @@ def test_retry_with_exponential_backoff_retries(mock_sleep):
     """Test that the function retries on exception."""
     mock_func = MagicMock(side_effect=[Exception("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff()(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff()(mock_func)
     result = decorated_func()
 
     assert result == "success"
@@ -54,7 +55,7 @@ def test_retry_with_exponential_backoff_max_attempts(mock_sleep):
     """Test that the function raises an exception after max attempts."""
     mock_func = MagicMock(side_effect=Exception("fail"))
 
-    decorated_func = retry_with_exponential_backoff(max_attempts=3)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(max_attempts=3)(mock_func)
 
     with pytest.raises(Exception, match="fail"):
         decorated_func()
@@ -68,7 +69,7 @@ def test_retry_with_exponential_backoff_delay(mock_sleep):
     """Test that the function uses exponential backoff delay."""
     mock_func = MagicMock(side_effect=[Exception("fail"), Exception("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff(base_delay=1, max_delay=5)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(base_delay=1, max_delay=5)(mock_func)
     result = decorated_func()
 
     assert result == "success"
@@ -84,7 +85,7 @@ def test_retry_with_exponential_backoff_custom_delays(mock_sleep):
     """Test that the function respects custom base delay and max delay."""
     mock_func = MagicMock(side_effect=[Exception("fail"), Exception("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff(base_delay=2, max_delay=10)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(base_delay=2, max_delay=10)(mock_func)
     result = decorated_func()
 
     assert result == "success"
@@ -100,7 +101,7 @@ def test_retry_with_exponential_backoff_different_exceptions(mock_sleep):
     """Test that the function retries on different types of exceptions."""
     mock_func = MagicMock(side_effect=[ValueError("fail"), KeyError("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff()(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff()(mock_func)
     result = decorated_func()
 
     assert result == "success"
@@ -118,7 +119,7 @@ async def test_async_retry_with_exponential_backoff_success():
     """Test that the async function succeeds without retries."""
     mock_func = AsyncMock(return_value="success")
 
-    decorated_func = retry_with_exponential_backoff()(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff()(mock_func)
     result = await decorated_func()
 
     assert result == "success"
@@ -131,7 +132,7 @@ async def test_async_retry_with_exponential_backoff_retries(mock_sleep):
     """Test that the async function retries on exception."""
     mock_func = AsyncMock(side_effect=[Exception("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff()(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff()(mock_func)
     result = await decorated_func()
 
     assert result == "success"
@@ -145,7 +146,7 @@ async def test_async_retry_with_exponential_backoff_max_attempts(mock_sleep):
     """Test that the async function raises an exception after max attempts."""
     mock_func = AsyncMock(side_effect=Exception("fail"))
 
-    decorated_func = retry_with_exponential_backoff(max_attempts=3)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(max_attempts=3)(mock_func)
 
     with pytest.raises(Exception, match="fail"):
         await decorated_func()
@@ -160,7 +161,7 @@ async def test_async_retry_with_exponential_backoff_delay(mock_sleep):
     """Test that the async function uses exponential backoff delay."""
     mock_func = AsyncMock(side_effect=[Exception("fail"), Exception("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff(base_delay=1, max_delay=5)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(base_delay=1, max_delay=5)(mock_func)
     result = await decorated_func()
 
     assert result == "success"
@@ -177,9 +178,49 @@ async def test_async_retry_with_exponential_backoff_different_exceptions(mock_sl
     """Test that the async function retries on different types of exceptions."""
     mock_func = AsyncMock(side_effect=[ValueError("fail"), KeyError("fail"), "success"])
 
-    decorated_func = retry_with_exponential_backoff()(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff()(mock_func)
     result = await decorated_func()
 
     assert result == "success"
     assert mock_func.call_count == 3
     assert mock_sleep.call_count == 2
+
+
+# ----------------------------------------------------------------------
+# Tests for helper functions within utils
+# ----------------------------------------------------------------------
+def test_calculate_delay():
+    """Test the calculate_delay function."""
+    seed(0)  # Seed the random number generator for reproducibility
+    delay = utils.calculate_delay(1, base_delay=1, max_delay=10)
+    assert 1 <= delay <= 10
+
+    delay = utils.calculate_delay(2, base_delay=1, max_delay=10)
+    assert 2 <= delay <= 10
+
+    delay = utils.calculate_delay(3, base_delay=1, max_delay=10)
+    assert 4 <= delay <= 10
+
+    delay = utils.calculate_delay(4, base_delay=1, max_delay=10)
+    assert 8 <= delay <= 10
+
+
+@patch("ccx_upgrades_data_eng.utils.logger")
+def test_log_attempt(logger_mock):
+    """Test the log_attempt function."""
+    utils.log_attempt(1, 5)
+    logger_mock.debug.assert_called_with("Attempt 1 of 5")
+
+
+@patch("ccx_upgrades_data_eng.utils.logger")
+def test_log_retry(logger_mock):
+    """Test the log_retry function."""
+    utils.log_retry(5)
+    logger_mock.debug.assert_called_with("Retrying in 5 seconds...")
+
+
+@patch("ccx_upgrades_data_eng.utils.logger")
+def test_log_max_retries(logger_mock):
+    """Test the log_max_retries function."""
+    utils.log_max_retries(5)
+    logger_mock.debug.assert_called_with("Max retries reached: 5")

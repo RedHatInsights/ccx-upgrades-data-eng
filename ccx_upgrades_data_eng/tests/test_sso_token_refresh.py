@@ -8,7 +8,6 @@ from fastapi import Request
 from ccx_upgrades_data_eng.main import (
     refresh_sso_token,
     get_session_and_refresh_token,
-    get_retry_decorator,
 )
 from ccx_upgrades_data_eng.auth import SessionManagerException, TokenException
 from ccx_upgrades_data_eng.tests import needed_env
