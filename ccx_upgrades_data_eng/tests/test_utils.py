@@ -51,7 +51,6 @@ def test_retry_with_exponential_backoff_retries(mock_sleep):
     assert mock_sleep.call_count == 1
 
 
-
 @patch("time.sleep", return_value=None)
 def test_retry_with_exponential_backoff_max_attempts(mock_sleep):
     """Test that the function raises an exception after max attempts."""
