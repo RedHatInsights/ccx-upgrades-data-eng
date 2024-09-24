@@ -62,6 +62,48 @@ class CustomTTLCache(LoggedTTLCache):
             super().__init__(maxsize=0, ttl=0)
 
 
+def calculate_delay(
+    attempt, base_delay=DEFAULT_SSO_RETRY_BASE_DELAY, max_delay=DEFAULT_SSO_RETRY_MAX_DELAY
+):
+    """
+    Calculate the delay for the given attempt using exponential backoff.
+
+    :param attempt: The current attempt number
+    :param base_delay: The base delay in seconds
+    :param max_delay: The maximum delay in seconds
+    :return: The calculated delay in seconds
+    """
+    return min(base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay)
+
+
+def log_attempt(attempt, max_attempts):
+    """
+    Log the current attempt number.
+
+    :param attempt: The current attempt number
+    :param max_attempts: The maximum number of attempts
+    """
+    logger.debug(f"Attempt {attempt} of {max_attempts}")
+
+
+def log_retry(delay):
+    """
+    Log the retry delay.
+
+    :param delay: The delay in seconds
+    """
+    logger.debug(f"Retrying in {delay} seconds...")
+
+
+def log_max_retries(attempt):
+    """
+    Log that the maximum number of retries has been reached.
+
+    :param attempt: The current attempt number
+    """
+    logger.debug(f"Max retries reached: {attempt}")
+
+
 def retry_with_exponential_backoff(
     max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS,
     base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
@@ -76,29 +118,17 @@ def retry_with_exponential_backoff(
     """
 
     def decorator(func):
-        def calculate_delay(attempt):
-            return min(base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay)
-
-        def log_attempt(attempt):
-            logger.debug(f"Attempt {attempt} of {max_attempts}")
-
-        def log_retry(delay):
-            logger.debug(f"Retrying in {delay} seconds...")
-
-        def log_max_retries(attempt):
-            logger.debug(f"Max retries reached: {attempt}")
-
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
             for attempt in range(1, max_attempts + 1):
                 try:
-                    log_attempt(attempt)
+                    log_attempt(attempt, max_attempts)
                     return await func(*args, **kwargs)
                 except Exception as e:
                     if attempt >= max_attempts:
                         log_max_retries(attempt)
                         raise e
-                    delay = calculate_delay(attempt)
+                    delay = calculate_delay(attempt, base_delay, max_delay)
                     log_retry(delay)
                     await asyncio.sleep(delay)
 
@@ -106,13 +136,13 @@ def retry_with_exponential_backoff(
         def sync_wrapper(*args, **kwargs):
             for attempt in range(1, max_attempts + 1):
                 try:
-                    log_attempt(attempt)
+                    log_attempt(attempt, max_attempts)
                     return func(*args, **kwargs)
                 except Exception as e:
                     if attempt >= max_attempts:
                         log_max_retries(attempt)
                         raise e
-                    delay = calculate_delay(attempt)
+                    delay = calculate_delay(attempt, base_delay, max_delay)
                     log_retry(delay)
                     time.sleep(delay)
 
