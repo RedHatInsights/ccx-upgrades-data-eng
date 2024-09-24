@@ -83,16 +83,16 @@ def retry_with_exponential_backoff(
             async def async_wrapper(*args, **kwargs):
                 for attempt in range(1, max_attempts + 1):
                     try:
-                        logger.info(f"Attempt {attempt} of {max_attempts}")
+                        logger.debug(f"Attempt {attempt} of {max_attempts}")
                         return await func(*args, **kwargs)  # Await the async function
                     except Exception as e:
                         if attempt == max_attempts:
-                            logger.error(f"Max retries reached: {attempt}")
+                            logger.debug(f"Max retries reached: {attempt}")
                             raise e
                         delay = min(
                             base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay
                         )
-                        logger.warning(f"Retrying in {delay} seconds...")
+                        logger.debug(f"Retrying in {delay} seconds...")
                         await asyncio.sleep(delay)
 
             return async_wrapper
@@ -102,16 +102,16 @@ def retry_with_exponential_backoff(
             def wrapper(*args, **kwargs):
                 for attempt in range(1, max_attempts + 1):
                     try:
-                        logger.info(f"Attempt {attempt} of {max_attempts}")
+                        logger.debug(f"Attempt {attempt} of {max_attempts}")
                         return func(*args, **kwargs)
                     except Exception as e:
                         if attempt == max_attempts:
-                            logger.error(f"Max retries reached: {attempt}")
+                            logger.debug(f"Max retries reached: {attempt}")
                             raise e
                         delay = min(
                             base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay
                         )
-                        logger.warning(f"Retrying in {delay} seconds... (attempt {attempt})")
+                        logger.debug(f"Retrying in {delay} seconds... (attempt {attempt})")
                         time.sleep(delay)
 
             return wrapper
