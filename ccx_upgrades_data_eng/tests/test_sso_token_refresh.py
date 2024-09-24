@@ -115,8 +115,7 @@ async def test_get_session_and_refresh_token_with_retries(
     session_manager_mock.refresh_token.side_effect = [TokenException("test"), None]
     get_session_manager_mock.return_value = session_manager_mock
 
-    retry_decorator = get_retry_decorator()
-    await retry_decorator(get_session_and_refresh_token)()
+    await get_session_and_refresh_token()
 
     assert get_session_manager_mock.called
     assert session_manager_mock.refresh_token.call_count == 2

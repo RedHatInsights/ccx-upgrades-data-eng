@@ -95,7 +95,7 @@ def retry_with_exponential_backoff(
                     log_attempt(attempt)
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    if attempt == max_attempts:
+                    if attempt >= max_attempts:
                         log_max_retries(attempt)
                         raise e
                     delay = calculate_delay(attempt)
@@ -109,7 +109,7 @@ def retry_with_exponential_backoff(
                     log_attempt(attempt)
                     return func(*args, **kwargs)
                 except Exception as e:
-                    if attempt == max_attempts:
+                    if attempt >= max_attempts:
                         log_max_retries(attempt)
                         raise e
                     delay = calculate_delay(attempt)
