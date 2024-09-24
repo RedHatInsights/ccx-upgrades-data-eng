@@ -1,9 +1,7 @@
 """Tests for utils module."""
 
-import time
 from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
-import asyncio
 
 from ccx_upgrades_data_eng.utils import LoggedTTLCache, retry_with_exponential_backoff
 
@@ -113,6 +111,7 @@ def test_retry_with_exponential_backoff_different_exceptions(mock_sleep):
 # ----------------------------------------------------------------------
 # Asynchronous tests for retry_with_exponential_backoff
 # ----------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_async_retry_with_exponential_backoff_success():

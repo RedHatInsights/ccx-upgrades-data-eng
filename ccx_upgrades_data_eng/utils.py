@@ -20,6 +20,7 @@ DEFAULT_SSO_RETRY_MAX_ATTEMPTS = 5
 DEFAULT_SSO_RETRY_BASE_DELAY = 1
 DEFAULT_SSO_RETRY_MAX_DELAY = 30
 
+
 class LoggedTTLCache(TTLCache):
     """TTL Cache with log for items eviction."""
 
@@ -61,7 +62,11 @@ class CustomTTLCache(LoggedTTLCache):
             super().__init__(maxsize=0, ttl=0)
 
 
-def retry_with_exponential_backoff(max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS, base_delay=DEFAULT_SSO_RETRY_BASE_DELAY, max_delay=DEFAULT_SSO_RETRY_MAX_DELAY):
+def retry_with_exponential_backoff(
+    max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS,
+    base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
+    max_delay=DEFAULT_SSO_RETRY_MAX_DELAY,
+):
     """
     Decorate a function with exponential backoff on any exception.
 
@@ -84,9 +89,12 @@ def retry_with_exponential_backoff(max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS, 
                         if attempt == max_attempts:
                             logger.error(f"Max retries reached: {attempt}")
                             raise e
-                        delay = min(base_delay * (2**(attempt-1)) + random.uniform(0, 1), max_delay)
+                        delay = min(
+                            base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay
+                        )
                         logger.warning(f"Retrying in {delay} seconds...")
                         await asyncio.sleep(delay)
+
             return async_wrapper
         else:
             # Sync wrapper
@@ -100,9 +108,12 @@ def retry_with_exponential_backoff(max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS, 
                         if attempt == max_attempts:
                             logger.error(f"Max retries reached: {attempt}")
                             raise e
-                        delay = min(base_delay * (2**(attempt-1)) + random.uniform(0, 1), max_delay)
+                        delay = min(
+                            base_delay * (2 ** (attempt - 1)) + random.uniform(0, 1), max_delay
+                        )
                         logger.warning(f"Retrying in {delay} seconds... (attempt {attempt})")
                         time.sleep(delay)
+
             return wrapper
 
     return decorator
@@ -115,14 +126,12 @@ def get_retry_decorator():
         return retry_with_exponential_backoff(
             max_attempts=settings.sso_retry_max_attempts,
             base_delay=settings.sso_retry_base_delay,
-            max_delay=settings.sso_retry_max_delay
+            max_delay=settings.sso_retry_max_delay,
         )
     except ValidationError:
         logger.debug("Settings not loaded yet. Using default values")
         return retry_with_exponential_backoff(
             max_attempts=DEFAULT_SSO_RETRY_MAX_ATTEMPTS,
             base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
-            max_delay=DEFAULT_SSO_RETRY_MAX_DELAY
+            max_delay=DEFAULT_SSO_RETRY_MAX_DELAY,
         )
-
-    
