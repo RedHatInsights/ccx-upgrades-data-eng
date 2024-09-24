@@ -28,7 +28,7 @@ from ccx_upgrades_data_eng.sentry import init_sentry
 import ccx_upgrades_data_eng.metrics as metrics
 
 from prometheus_fastapi_instrumentator import Instrumentator
-
+from ccx_upgrades_data_eng.utils import retry_with_exponential_backoff
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
@@ -44,15 +44,18 @@ async def expose_metrics():
     logger.info("Metrics available at /metrics")
 
 
-@app.middleware("http")  # Check if it needs to be refreshed in each request
-# @repeat_every(seconds=360)  # Refresh the, default expires_at is 9 min
+@retry_with_exponential_backoff(max_attempts=5, base_delay=1, max_delay=30)
+async def get_session_and_refresh_token():
+    """Initialize the session manager and refresh the token."""
+    session_manager = get_session_manager()
+    session_manager.refresh_token()
+
+
+@app.middleware("http")
 async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
-    """Initialize the session manager (if needed) and refresh the token (if needed)."""
+    """Middleware to ensure SSO token is refreshed before processing the request."""
     try:
-        # this is cached (if initialized correctly before) so it will be
-        # initialized just once
-        session_manager = get_session_manager()
-        session_manager.refresh_token()
+        await get_session_and_refresh_token()
     except SessionManagerException as ex:
         logger.error("Unable to initialize SSO session: %s", ex)
         return JSONResponse(
