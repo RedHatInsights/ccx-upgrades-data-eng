@@ -237,7 +237,7 @@ objects:
 parameters:
 - description: Image name
   name: IMAGE
-  value: quay.io/cloudservices/ccx-upgrades-data-eng
+  value: quay.io/redhat-services-prod/obsint-processing-tenant/upgrades-data-eng/upgrades-data-eng
 - description: Image tag
   name: IMAGE_TAG
   required: true
