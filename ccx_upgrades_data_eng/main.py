@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 
 from ccx_upgrades_data_eng.auth import (
     get_session_manager,
@@ -29,16 +30,31 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 
 logger = logging.getLogger(__name__)
-app = FastAPI()
 
+def create_lifespan_handler(instrumentator: Instrumentator):
+    """
+    Create a FastAPI lifespan handler for the application
 
-@app.on_event("startup")
-async def expose_metrics():
-    """Expose the prometheus metrics in the /metrics endpoint."""
-    logger.debug("Exposing metrics")
-    Instrumentator().instrument(app).expose(app)
-    logger.info("Metrics available at /metrics")
+    @param instrumentator: A prometheus instrumentator used to expose metrics
+    """
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        logger.debug("Exposing metrics")
+        instrumentator.expose(app)
+        logger.info("Metrics available at /metrics")
+        yield
 
+    return lifespan
+
+def create_app():
+    instrumentator = Instrumentator()
+    app = FastAPI(
+        lifespan=create_lifespan_handler(instrumentator),
+    )
+    instrumentator.instrument(app)
+    return app
+
+app = create_app()
 
 @app.middleware("http")  # Check if it needs to be refreshed in each request
 # @repeat_every(seconds=360)  # Refresh the, default expires_at is 9 min
