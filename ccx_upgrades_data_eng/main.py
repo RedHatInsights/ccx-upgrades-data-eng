@@ -31,12 +31,13 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = logging.getLogger(__name__)
 
+
 def create_lifespan_handler(instrumentator: Instrumentator):
-    """
-    Create a FastAPI lifespan handler for the application
+    """Create a FastAPI lifespan handler for the application.
 
     @param instrumentator: A prometheus instrumentator used to expose metrics
     """
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         logger.debug("Exposing metrics")
@@ -46,7 +47,9 @@ def create_lifespan_handler(instrumentator: Instrumentator):
 
     return lifespan
 
+
 def create_app():
+    """Initialize the app."""
     instrumentator = Instrumentator()
     app = FastAPI(
         lifespan=create_lifespan_handler(instrumentator),
@@ -54,7 +57,9 @@ def create_app():
     instrumentator.instrument(app)
     return app
 
+
 app = create_app()
+
 
 @app.middleware("http")  # Check if it needs to be refreshed in each request
 # @repeat_every(seconds=360)  # Refresh the, default expires_at is 9 min
