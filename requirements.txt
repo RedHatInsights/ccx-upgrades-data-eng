@@ -4,7 +4,7 @@ requests==2.32.3
 requests-oauthlib ==2.0.0
 uvicorn[standard]==0.32.0
 prometheus_fastapi_instrumentator==7.0.0
-cachetools==5.5.0
+cachetools==5.5.1
 sentry-sdk>=1.37.1
 setuptools>=70.0.0
 
