@@ -10,7 +10,7 @@ setuptools>=70.0.0
 
 # Just for development:
 pytest-cov==6.0.0
-pytest-asyncio==0.24.0
+pytest-asyncio==0.25.3
 pylint==3.3.3  # pre-commit
 toml==0.10.2    # pre-commit
 httpx==0.28.1    # fastapi testing
