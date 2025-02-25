@@ -14,10 +14,9 @@ from ccx_upgrades_data_eng.inference import (
 from ccx_upgrades_data_eng.examples import (
     EXAMPLE_CONSOLE_URL,
     EXAMPLE_PREDICTORS,
-    EXAMPLE_PREDICTORS_WITH_EMPTY_URL,
     EXAMPLE_PREDICTORS_WITH_URL,
 )
-from ccx_upgrades_data_eng.models import UpgradeRisksPredictors, FOC
+from ccx_upgrades_data_eng.models import UpgradeRisksPredictors, UpgradeRisksPredictorsWithURLs, FOC
 from ccx_upgrades_data_eng.tests import needed_env
 
 INFERENCE_UPGRADE_MOCKED_RESPONSE_EMPTY_PREDICTORS = {
@@ -65,10 +64,14 @@ def test_get_inference_for_predictors_inference_ok_empty(get_mock):
         alerts=[],
         operator_conditions=[],
     )
+    expected_risk_predictors = UpgradeRisksPredictorsWithURLs.model_validate(
+        risk_predictors.model_dump()
+    )
+
     response = get_inference_for_predictors(risk_predictors)
     assert response.upgrade_recommended
     # With an empty risk prediction, the response should be always the same
-    assert response.upgrade_risks_predictors == risk_predictors
+    assert response.upgrade_risks_predictors == expected_risk_predictors
 
 
 @patch.dict(os.environ, needed_env)
@@ -80,11 +83,13 @@ def test_get_inference_for_predictors_inference_ok_full(get_mock):
     response_mock.json.return_value = INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_PREDICTORS
     get_mock.return_value = response_mock
 
-    risk_predictors = UpgradeRisksPredictors.parse_obj(EXAMPLE_PREDICTORS)
+    risk_predictors = UpgradeRisksPredictors.model_validate(EXAMPLE_PREDICTORS)
     response = get_inference_for_predictors(risk_predictors)
+    expected_response = UpgradeRisksPredictorsWithURLs.model_validate(EXAMPLE_PREDICTORS)
+
     assert not response.upgrade_recommended
     # With an empty risk prediction, the response should be always the same
-    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
+    assert response.upgrade_risks_predictors == expected_response
 
 
 def test_calculate_upgrade_recommended_0_predictors():
@@ -114,11 +119,11 @@ def test_get_filled_inference_for_predictors_ok(get_mock):
     response_mock.json.return_value = INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_FILLED_URLS
     get_mock.return_value = response_mock
 
-    risk_predictors = UpgradeRisksPredictors.parse_obj(EXAMPLE_PREDICTORS)
+    risk_predictors = UpgradeRisksPredictors.model_validate(EXAMPLE_PREDICTORS)
     response = get_filled_inference_for_predictors(risk_predictors, EXAMPLE_CONSOLE_URL)
     assert not response.upgrade_recommended
     # With an empty risk prediction, the response should be always the same
-    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_URL
+    assert response.upgrade_risks_predictors.model_dump() == EXAMPLE_PREDICTORS_WITH_URL
 
 
 @patch.dict(os.environ, needed_env)
@@ -130,8 +135,8 @@ def test_last_checked_at(get_mock):
     response_mock.json.return_value = INFERENCE_UPGRADE_MOCKED_RESPONSE_WITH_FILLED_URLS
     get_mock.return_value = response_mock
 
-    risk_predictors = UpgradeRisksPredictors.parse_obj(EXAMPLE_PREDICTORS)
-    response = get_inference_for_predictors(risk_predictors)
+    risk_predictors = UpgradeRisksPredictors.model_validate(EXAMPLE_PREDICTORS)
+    response = get_filled_inference_for_predictors(risk_predictors, EXAMPLE_CONSOLE_URL)
     assert (
         datetime.now(tz=timezone.utc) - timedelta(minutes=1)
         < response.last_checked_at

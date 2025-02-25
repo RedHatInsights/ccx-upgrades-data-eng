@@ -277,13 +277,13 @@ def test_upgrade_api_response():
         upgrade_risks_predictors=EXAMPLE_PREDICTORS,
         last_checked_at=EXAMPLE_DATE,
     )
-    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
+    assert response.upgrade_risks_predictors.model_dump() == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
 
 
 def test_inference_response():
     """Test the InferenceResponse can be created and fields are populated."""
     response = InferenceResponse(upgrade_risks_predictors=EXAMPLE_PREDICTORS)
-    assert response.upgrade_risks_predictors == EXAMPLE_PREDICTORS
+    assert response.upgrade_risks_predictors.model_dump() == EXAMPLE_PREDICTORS
 
 
 def test_cluster_prediction_without_optional():

@@ -3,7 +3,7 @@
 from typing import Any, List, Optional, Type
 from uuid import UUID
 
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import ConfigDict, BaseModel  # pylint: disable=no-name-in-module
 from datetime import datetime
 
 from ccx_upgrades_data_eng.examples import (
@@ -18,13 +18,9 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
     """Alert containing name, namespace and severity."""
 
     name: str
-    namespace: Optional[str]
+    namespace: Optional[str] = None
     severity: str
-
-    class Config:  # pylint: disable=too-few-public-methods
-        """Update the configuration with an example."""
-
-        schema_extra = {"example": {"alert": EXAMPLE_ALERT}}
+    model_config = ConfigDict(json_schema_extra={"example": {"alert": EXAMPLE_ALERT}})
 
     @classmethod
     def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
@@ -33,7 +29,7 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
         if "alertname" in obj:
             obj["name"] = obj["alertname"]
 
-        return Alert.parse_obj(obj)
+        return Alert.model_validate(obj)
 
     def __eq__(self, other):
         """Needed in order to remove duplicates from a list of alerts."""
@@ -53,12 +49,8 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
 
     name: str
     condition: str
-    reason: Optional[str]
-
-    class Config:  # pylint: disable=too-few-public-methods
-        """Update the configuration with an example."""
-
-        schema_extra = {"example": {"foc": EXAMPLE_FOC}}
+    reason: Optional[str] = None
+    model_config = ConfigDict(json_schema_extra={"example": {"foc": EXAMPLE_FOC}})
 
     @classmethod
     def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
@@ -71,7 +63,7 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
                 # it is needed to update the condition to match
                 obj["condition"] = "Not Available"
 
-        return FOC.parse_obj(obj)
+        return FOC.model_validate(obj)
 
     def __eq__(self, other):
         """Needed in order to remove duplicates from a list of focs."""
@@ -113,15 +105,13 @@ class InferenceResponse(BaseModel):
     """The response obtained from the inference service."""
 
     upgrade_risks_predictors: UpgradeRisksPredictors
-
-    class Config:  # pylint: disable=too-few-public-methods
-        """Update the configuration with an example."""
-
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "upgrade_risks_predictors": EXAMPLE_PREDICTORS,
             }
         }
+    )
 
 
 class AlertWithURL(Alert):
@@ -166,15 +156,14 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
             )
         )
 
-    class Config:  # pylint: disable=too-few-public-methods
-        """Update the configuration with an example."""
-
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "upgrade_recommended": False,
                 "upgrade_risks_predictors": EXAMPLE_PREDICTORS_WITH_URL,
             }
         }
+    )
 
 
 class ClusterPrediction(BaseModel):
@@ -188,9 +177,9 @@ class ClusterPrediction(BaseModel):
 
     cluster_id: str
     prediction_status: str
-    upgrade_recommended: Optional[bool]
-    upgrade_risks_predictors: Optional[UpgradeRisksPredictorsWithURLs]
-    last_checked_at: Optional[datetime]
+    upgrade_recommended: Optional[bool] = None
+    upgrade_risks_predictors: Optional[UpgradeRisksPredictorsWithURLs] = None
+    last_checked_at: Optional[datetime] = None
 
 
 class MultiClusterUpgradeApiResponse(BaseModel):
@@ -202,11 +191,8 @@ class MultiClusterUpgradeApiResponse(BaseModel):
     """
 
     predictions: List[ClusterPrediction]
-
-    class Config:  # pylint: disable=too-few-public-methods
-        """Update the configuration with an example."""
-
-        schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "predictions": [
                     {
@@ -222,6 +208,7 @@ class MultiClusterUpgradeApiResponse(BaseModel):
                 ],
             }
         }
+    )
 
 
 class ClustersList(BaseModel):

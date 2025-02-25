@@ -10,7 +10,11 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from ccx_upgrades_data_eng.main import app
-from ccx_upgrades_data_eng.models import UpgradeApiResponse, UpgradeRisksPredictors
+from ccx_upgrades_data_eng.models import (
+    UpgradeApiResponse,
+    UpgradeRisksPredictors,
+    UpgradeRisksPredictorsWithURLs,
+)
 from ccx_upgrades_data_eng.tests import needed_env
 
 client = TestClient(app)
@@ -38,7 +42,10 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
 
         response = client.get("/cluster/test/upgrade-risks-prediction")
         assert response.status_code == 422
-        assert response.json()["detail"][0]["msg"] == "value is not a valid uuid"
+        assert (
+            response.json()["detail"][0]["msg"]
+            == "Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `t` at 1"
+        )
 
     @patch("ccx_upgrades_data_eng.main.perform_rhobs_request")
     def test_valid_parameter_rhobs_error(
@@ -107,7 +114,9 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         )
         get_filled_inference_for_predictors_mock.return_value = UpgradeApiResponse(
             upgrade_recommended=True,
-            upgrade_risks_predictors=risk_predictors,
+            upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(
+                risk_predictors.model_dump()
+            ),
             last_checked_at=test_date,
         )
 
@@ -201,21 +210,21 @@ def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
     session_manager_mock = MagicMock()
     get_session_manager_mock.return_value = session_manager_mock
 
-    risk_predictors = UpgradeRisksPredictors(
-        alerts=[],
-        operator_conditions=[],
-    )
+    risk_predictors = {"alerts": [], "operator_conditions": []}
     clusters_predictions = {
         UUID("34c3ecc5-624a-49a5-bab8-4fdc5e51a266"): (
-            risk_predictors,
+            UpgradeRisksPredictors.model_validate(risk_predictors),
             "https://console_url.com",
         ),
-        UUID("2b9195d4-85d4-428f-944b-4b46f08911f8"): (risk_predictors, ""),
+        UUID("2b9195d4-85d4-428f-944b-4b46f08911f8"): (
+            UpgradeRisksPredictors.model_validate(risk_predictors),
+            "",
+        ),
     }
     perform_rhobs_request_multi_cluster_mock.return_value = clusters_predictions
     get_filled_inference_for_predictors_mock.return_value = UpgradeApiResponse(
         upgrade_recommended=True,
-        upgrade_risks_predictors=risk_predictors,
+        upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(risk_predictors),
         last_checked_at=test_date,
     )
 
