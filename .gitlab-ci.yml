@@ -45,12 +45,17 @@ coverage-checking:
 
 bdd-tests:
   stage: test
-  image: quay.io/cloudservices/insights-behavioral-spec:latest
+  image: quay.io/redhat-services-prod/obsint-processing-tenant/insights-behavioral-spec/insights-behavioral-spec:latest
   variables:
     PATH_TO_LOCAL_DATA_ENG_SERVICE: "$CI_PROJECT_DIR"
     BDD_PATH: /insights-behavioral-spec
     VIRTUAL_ENV: /insights-behavioral-spec-venv/
     WITHMOCK: "1"
+    http_proxy: ""
+    HTTP_PROXY: ""
+    https_proxy: ""
+    HTTPS_PROXY: ""
+
   script:
     - cd $BDD_PATH
     - make data-engineering-service-tests
