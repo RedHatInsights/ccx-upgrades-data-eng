@@ -13,7 +13,7 @@ pytest-cov==6.0.0
 pytest-asyncio==0.24.0
 pylint==3.3.3  # pre-commit
 toml==0.10.2    # pre-commit
-httpx==0.27.2    # fastapi testing
+httpx==0.28.1    # fastapi testing
 
 # Logging to Cloudwatch
 boto3
