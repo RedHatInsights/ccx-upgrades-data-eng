@@ -1,4 +1,4 @@
-fastapi==0.115.8
+fastapi==0.115.10
 fastapi-utils==0.8.0
 requests==2.32.3
 requests-oauthlib ==2.0.0
