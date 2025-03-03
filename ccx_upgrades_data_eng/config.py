@@ -2,14 +2,14 @@
 
 import logging
 from functools import lru_cache
-
-from pydantic import BaseSettings
 from pydantic import ValidationError
+from pydantic_settings import BaseSettings
 
 
 RH_OAUTH_ISSUER = "https://sso.redhat.com/auth/realms/redhat-external"
 RHOBS_URL = "https://observatorium.api.stage.openshift.com"
 RHOBS_DEFAULT_TENANT = "telemeter"
+RHOBS_DEFAULT_REQUEST_TIMEOUT = 10.0
 
 DEFAULT_CACHE_ENABLED = False
 DEFAULT_CACHE_TTL = 0
@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # Observatorium configuration
     rhobs_url: str = RHOBS_URL
     rhobs_tenant: str = RHOBS_DEFAULT_TENANT
-    rhobs_request_timeout: float = None
+    rhobs_request_timeout: float = RHOBS_DEFAULT_REQUEST_TIMEOUT
     rhobs_query_max_minutes_for_data: int = 60
 
     # Inference service configuration
@@ -51,6 +51,10 @@ def get_settings() -> Settings:
     try:
         return Settings()
     except ValidationError as exc:
-        args = [arg.loc_tuple()[0] for arg in exc.args[0]]
-        logger.fatal("Cannot read expected environment variables: %s", args)
+        if len(exc.args) == 0:
+            logger.fatal("Cannot read expected environment variables.")
+        else:
+            args = [arg.loc_tuple()[0] for arg in exc.args[0]]
+            logger.fatal("Cannot read expected environment variables: %s", args)
+
         raise exc

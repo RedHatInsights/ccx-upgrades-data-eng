@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
 
 
-def fill_urls(response: UpgradeApiResponse, console_url: str):
+def fill_urls(response: UpgradeApiResponse, console_url: str) -> None:
     """Fill the alerts and FOCs with a link to the console URL."""
     if console_url == "":
         return

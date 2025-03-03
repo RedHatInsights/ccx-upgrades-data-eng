@@ -8,6 +8,7 @@ from ccx_upgrades_data_eng.config import (
     RH_OAUTH_ISSUER,
     RHOBS_URL,
     RHOBS_DEFAULT_TENANT,
+    RHOBS_DEFAULT_REQUEST_TIMEOUT,
 )
 
 
@@ -41,7 +42,7 @@ def test_default_settings_not_set():
     assert settings.allow_insecure is False
     assert settings.rhobs_url == RHOBS_URL
     assert settings.rhobs_tenant == RHOBS_DEFAULT_TENANT
-    assert settings.rhobs_request_timeout is None
+    assert settings.rhobs_request_timeout == RHOBS_DEFAULT_REQUEST_TIMEOUT
     assert settings.rhobs_query_max_minutes_for_data == 60
     assert settings.inference_url == "test-inference_url"
     assert settings.cache_enabled is False

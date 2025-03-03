@@ -11,6 +11,7 @@ from ccx_upgrades_data_eng.models import (
     UpgradeApiResponse,
     UpgradeRisksPredictors,
     InferenceResponse,
+    UpgradeRisksPredictorsWithURLs,
 )
 from ccx_upgrades_data_eng.urls import fill_urls
 from ccx_upgrades_data_eng.utils import CustomTTLCache
@@ -33,12 +34,12 @@ def get_inference_for_predictors(
     logger.debug("Inference response status code: %s", inference_response.status_code)
     logger.debug("Inference response text: %s", inference_response.text)
 
-    inference_response = InferenceResponse.parse_obj(inference_response.json())
+    inference_response = InferenceResponse.model_validate(inference_response.json())
     risks = inference_response.upgrade_risks_predictors
 
     response = UpgradeApiResponse(
         upgrade_recommended=calculate_upgrade_recommended(risks),
-        upgrade_risks_predictors=risks,
+        upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(risks.model_dump()),
         last_checked_at=datetime.now(tz=timezone.utc),
     )
     logger.debug("Inference response is: %s", response)
