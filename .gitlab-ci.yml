@@ -45,7 +45,7 @@ coverage-checking:
 
 bdd-tests:
   stage: test
-  image: quay.io/redhat-user-workloads / obsint-processing-tenant/insights-behavioral-spec/insights-behavioral-spec:on-pr-b3452431b22ad8732ecbcec3481bb28ce1689d35
+  image: quay.io/redhat-user-workloads/obsint-processing-tenant/insights-behavioral-spec/insights-behavioral-spec:on-pr-b3452431b22ad8732ecbcec3481bb28ce1689d35
   variables:
     PATH_TO_LOCAL_DATA_ENG_SERVICE: "$CI_PROJECT_DIR"
     BDD_PATH: /insights-behavioral-spec
