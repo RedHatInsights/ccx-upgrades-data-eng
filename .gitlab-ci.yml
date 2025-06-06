@@ -68,7 +68,7 @@ bdd-tests:
       - ./logs
     expire_in: 1 week
   services:
-    - name: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    - name: ghcr.io/navikt/mock-oauth2-server:2.2.0
       alias: mock-oauth2-server
       variables:
         PORT: 8081
