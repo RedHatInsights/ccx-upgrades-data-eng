@@ -7,7 +7,7 @@ prometheus_fastapi_instrumentator==7.1.0
 cachetools==6.0.0
 sentry-sdk>=1.37.1
 setuptools>=70.0.0
-pydantic-settings==2.9.1
+pydantic-settings==2.10.1
 
 # Just for development:
 pytest-cov==6.2.1
