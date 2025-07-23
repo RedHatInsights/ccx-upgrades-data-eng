@@ -75,6 +75,8 @@ bdd-tests:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  tags:
+    - shared-podman-debug
 
 pre-commit-autoupdate:
   extends: .pre-commit:autoupdate
