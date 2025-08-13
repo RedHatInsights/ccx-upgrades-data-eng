@@ -62,11 +62,11 @@ objects:
               scheme: HTTP
           resources:
             limits:
-              cpu: 50m
-              memory: 400Mi
+              cpu: ${CPU_LIMIT}
+              memory: ${MEMORY_LIMIT}
             requests:
-              cpu: 10m
-              memory: 250Mi
+              cpu: ${CPU_REQUEST}
+              memory: ${MEMORY_REQUEST}
           env:
             - name: LOG_LEVEL
               value: ${LOG_LEVEL}
@@ -103,3 +103,11 @@ parameters:
 - description: Logging level
   name: LOG_LEVEL
   value: DEBUG
+- name: CPU_REQUEST
+  value: '10m'
+- name: CPU_LIMIT
+  value: '50m'
+- name: MEMORY_REQUEST
+  value: '250Mi'
+- name: MEMORY_LIMIT
+  value: '400Mi'
