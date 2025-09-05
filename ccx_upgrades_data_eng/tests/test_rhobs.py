@@ -3,6 +3,7 @@
 import importlib
 import os
 import sys
+from requests.exceptions import ConnectionError
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
@@ -53,6 +54,26 @@ def test_perform_rhobs_request_not_ok(get_session_manager_mock, response_status)
 
     session_mock = MagicMock()
     session_mock.get.return_value = rhobs_response_mock
+
+    session_manager_mock = MagicMock()
+    session_manager_mock.get_session.return_value = session_mock
+
+    get_session_manager_mock.return_value = session_manager_mock
+
+    # Perform the request
+    cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
+
+    with pytest.raises(HTTPException):
+        perform_rhobs_request(cluster_id)
+
+
+@patch.dict(os.environ, needed_env)
+@patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
+def test_perform_rhobs_request_connection_error(get_session_manager_mock):
+    """Check result when RHOBS return a non 200."""
+    # Prepare the mocks
+    session_mock = MagicMock()
+    session_mock.get.side_effect = ConnectionError("Mock failure")
 
     session_manager_mock = MagicMock()
     session_manager_mock.get_session.return_value = session_mock

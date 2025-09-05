@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
 import requests
+from requests.exceptions import ConnectionError, ReadTimeout
 
 from cachetools import cached
 from fastapi import HTTPException
@@ -60,7 +61,11 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
     Also return the console url.
     """
     query = alerts_and_focs([cluster_id])
-    response = query_rhobs_endpoint(query)
+    try:
+        response = query_rhobs_endpoint(query)
+    except (ConnectionError, ReadTimeout) as e:
+        logger.warn(f"RHOBS connection failed due to: {str(e)}")
+        raise HTTPException(status_code=424, detail="RHOBS connection failed")
 
     if response.status_code == 404:
         logger.debug('cluster "%s" not found in Observatorium', cluster_id)
@@ -140,7 +145,11 @@ def perform_rhobs_request_multi_cluster(
         return clusters_results
 
     query = alerts_and_focs(missing_clusters)
-    response = query_rhobs_endpoint(query)
+    try:
+        response = query_rhobs_endpoint(query)
+    except (ConnectionError, ReadTimeout) as e:
+        logger.warn(f"RHOBS connection failed due to: {str(e)}")
+        raise HTTPException(status_code=424, detail="RHOBS connection failed")
     results = response.json().get("data", {}).get("result", [])
 
     if response.status_code != 200 or results is None:
