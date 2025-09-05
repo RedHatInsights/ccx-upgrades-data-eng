@@ -10,7 +10,7 @@ services:
       - CLIENT_SECRET=test-secret
       - SSO_ISSUER=http://mock-oauth2-server:8080/default
       - ALLOW_INSECURE=1
-      - RHOBS_URL=http://rhobs-mock:8080
+      - RHOBS_URL=http://obsint-mocks:8000
       - OAUTHLIB_INSECURE_TRANSPORT=1
       - CACHE_ENABLED=0
       - CACHE_TTL=0
@@ -33,11 +33,11 @@ services:
     ports:
       - 8001:8000
   
-  rhobs-mock:
-    # git clone git@redhat.com:ccx/rhobs-mock.git
-    # cd rhobs-mock
-    # docker build -t rhobs-mock .
-    image: quay.io/cloudservices/rhobs-mock
+  obsint-mocks:
+    # git clone git@redhat.com:ccx/obsint-mocks.git
+    # cd obsint-mocks
+    # docker build -t obsint-mocks .
+    image: quay.io/redhat-services-prod/obsint-processing-tenant/obsint-mocks/obsint-mocks
     ports:
-      - 8081:8080
+      - 8002:8000
 
