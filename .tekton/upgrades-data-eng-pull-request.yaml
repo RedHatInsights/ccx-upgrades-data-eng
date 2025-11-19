@@ -33,7 +33,8 @@ spec:
       value: .
   pipelineRef:
     name: docker-build
-  taskRunTemplate: {}
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-upgrades-data-eng
   workspaces:
     - name: workspace
       volumeClaimTemplate:
