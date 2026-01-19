@@ -31,16 +31,13 @@ from ccx_upgrades_data_eng.tests import (
 
 def test_alerts_and_focs():
     """Test if alerts_and_focs returns the expected query."""
-    assert (
-        alerts_and_focs(["test1", "test2"])
-        == """console_url{_id=~"test1|test2"}
+    assert alerts_and_focs(["test1", "test2"]) == """console_url{_id=~"test1|test2"}
 or
 alerts{_id=~"test1|test2", namespace=~"openshift-.*", severity=~"warning|critical"}
 or
 cluster_operator_conditions{_id=~"test1|test2", condition="Available"} == 0
 or
 cluster_operator_conditions{_id=~"test1|test2", condition="Degraded"} == 1"""
-    )
 
 
 @pytest.mark.parametrize("response_status", [300, 404, 500])
