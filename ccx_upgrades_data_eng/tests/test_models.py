@@ -22,7 +22,6 @@ from ccx_upgrades_data_eng.examples import (
     EXAMPLE_CLUSTER_ID,
 )
 
-
 GOOD_ALERTS = [
     {
         "metric": {
