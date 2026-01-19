@@ -5,7 +5,6 @@ from functools import lru_cache
 from pydantic import ValidationError
 from pydantic_settings import BaseSettings
 
-
 RH_OAUTH_ISSUER = "https://sso.redhat.com/auth/realms/redhat-external"
 RHOBS_URL = "https://observatorium.api.stage.openshift.com"
 RHOBS_DEFAULT_TENANT = "telemeter"

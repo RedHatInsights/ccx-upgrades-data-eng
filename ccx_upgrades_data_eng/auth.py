@@ -10,7 +10,6 @@ from requests_oauthlib import OAuth2Session
 
 from ccx_upgrades_data_eng.config import get_settings
 
-
 logger = logging.getLogger(__name__)
 
 
