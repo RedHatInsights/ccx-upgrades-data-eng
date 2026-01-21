@@ -8,7 +8,7 @@ The responsibilities of the data-eng service are:
 1. Query RHOBS (a huge Thanos instance that stores the historical metrics of our
 customers' clusters) in order to get the latest metrics for a given cluster
 ([CCXDEV-9850](https://issues.redhat.com/browse/CCXDEV-9850)).
-1. Apply a ML model (running in [ccx-upgrades-inference](https://redhat.com/ccx-inference-service))
+1. Apply a ML model (running in [ccx-upgrades-inference](https://github.com/RedHatInsights/ccx-upgrades-inference))
 to select the metrics that are more likely to affect the cluster upgrade.
 1. Format the results and return them to the user. This includes generating a
 URL for each alert and operator condition based on the console URL. The console
@@ -41,7 +41,7 @@ the Docker container image.
 
 ## Dashboards
 
-Definition of the dashboard for this service and the [inference](https://redhat.com/ccx-inference-service) one is located in [dashboards](dashboards).
+Definition of the dashboard for this service and the [inference](https://github.com/RedHatInsights/ccx-upgrades-inference) one is located in [dashboards](dashboards).
 
 ## Testing and local development
 

@@ -26,7 +26,7 @@ services:
       - 8080:8080
   
   ccx-upgrades-inference:
-    # git clone https://redhat.com/ccx-upgrades-inference 
+    # git clone https://github.com/RedHatInsights/ccx-upgrades-inference
     # cd ccx-upgrades-inference
     # docker build -t ccx-upgrades-inference .
     image: ccx-upgrades-inference
@@ -34,7 +34,7 @@ services:
       - 8001:8000
   
   obsint-mocks:
-    # git clone git@redhat.com:ccx/obsint-mocks.git
+    # git clone git@github.com:RedHatInsights/obsint-mocks.git
     # cd obsint-mocks
     # docker build -t obsint-mocks .
     image: quay.io/redhat-services-prod/obsint-processing-tenant/obsint-mocks/obsint-mocks
