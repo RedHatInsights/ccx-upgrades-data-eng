@@ -11,9 +11,10 @@ jobs:
   bot-automerge:
     runs-on: ubuntu-latest
     # Check if the pull request is from Konflux bot with mintmaker branch and not from a fork
+    # Only auto-merge branches matching konflux/mintmaker/main/* (aligns with branch protection rules)
     if: |
       github.event.pull_request.user.login == 'red-hat-konflux[bot]' &&
-      startsWith(github.event.pull_request.head.ref, 'konflux/mintmaker/') &&
+      startsWith(github.event.pull_request.head.ref, 'konflux/mintmaker/main/') &&
       github.event.pull_request.head.repo.full_name == github.repository
     steps:
       # NOTE: PR approval does not work on PRs from forks
