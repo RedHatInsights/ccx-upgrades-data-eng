@@ -18,6 +18,12 @@
       "groupName": "Go dependencies",
       "groupSlug": "go-deps",
       "separateMajorMinor": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "groupSlug": "github-actions",
+      "separateMajorMinor": false
     }
   ]
 }
