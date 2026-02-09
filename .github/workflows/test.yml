@@ -23,4 +23,8 @@ jobs:
           pip install pytest-cov
       - name: Test with pytest
         run: |
-          pytest -vv --cov=ccx_upgrades_inference --cov-report=term
+          pytest -vv --cov=ccx_upgrades_inference --cov-branch --cov-report=term
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
