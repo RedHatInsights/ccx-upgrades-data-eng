@@ -1,7 +1,6 @@
 """Test main.py."""
 
 import os
-import json
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 from uuid import UUID
@@ -189,8 +188,7 @@ def test_multi_cluster_endpoint_no_clusters(get_session_manager_mock):
     """Test multi cluster endpoint success."""
     response = client.post(
         "/upgrade-risks-prediction",
-        data=json.dumps({"clusters": []}),
-        content="application/json",
+        json={"clusters": []},
     )
     assert response.status_code == 200
 
@@ -230,15 +228,13 @@ def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
 
     response = client.post(
         "/upgrade-risks-prediction",
-        data=json.dumps(
-            {
-                "clusters": [
-                    "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
-                    "2b9195d4-85d4-428f-944b-4b46f08911f8",
-                    "aae0ff10-9892-4572-b77f-73eb3e39825f",  # Cluster not in RHOBS
-                ],
-            }
-        ),
+        json={
+            "clusters": [
+                "34c3ecc5-624a-49a5-bab8-4fdc5e51a266",
+                "2b9195d4-85d4-428f-944b-4b46f08911f8",
+                "aae0ff10-9892-4572-b77f-73eb3e39825f",  # Cluster not in RHOBS
+            ],
+        },
     )
     content = response.json()
 
