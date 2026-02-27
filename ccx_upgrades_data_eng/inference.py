@@ -26,7 +26,9 @@ def get_inference_for_predictors(
     settings = get_settings()
 
     inference_endpoint = f"{settings.inference_url}/upgrade-risks-prediction"
-    inference_response = requests.get(inference_endpoint, data=risk_predictors.json(), timeout=5)
+    inference_response = requests.get(
+        inference_endpoint, json=risk_predictors.model_dump(), timeout=5
+    )
 
     if inference_response.status_code != 200:
         raise HTTPException(status_code=inference_response.status_code)
