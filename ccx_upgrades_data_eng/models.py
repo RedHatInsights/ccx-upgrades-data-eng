@@ -55,7 +55,7 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
     model_config = ConfigDict(json_schema_extra={"example": {"foc": EXAMPLE_FOC}})
 
     @classmethod
-    def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
+    def parse_metric(cls: type["Model"], obj: Any) -> "Model":  # noqa
         """Wrap the parsing of an Observatorium metric object and return a FOC."""
         obj = obj.copy()  # dont modify the original obj
         if "condition" in obj and obj["condition"] == "Available":
