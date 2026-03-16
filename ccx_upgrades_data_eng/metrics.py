@@ -38,7 +38,9 @@ def update_ccx_upgrades_prediction_total(response: UpgradeApiResponse):
 
 def update_ccx_upgrades_risks_total(response: UpgradeApiResponse):
     """Update CCX_UPGRADES_RISKS_TOTAL."""
-    CCX_UPGRADES_RISKS_TOTAL.labels("alerts").observe(len(response.upgrade_risks_predictors.alerts))
+    CCX_UPGRADES_RISKS_TOTAL.labels("alerts").observe(
+        len(response.upgrade_risks_predictors.alerts)
+    )
     CCX_UPGRADES_RISKS_TOTAL.labels("operator_conditions").observe(
         len(response.upgrade_risks_predictors.operator_conditions)
     )

@@ -1,16 +1,17 @@
 """Utils to interact with Inference service."""
 
 import logging
-import requests
-from fastapi import HTTPException
-from cachetools import cached
 from datetime import datetime, timezone
+
+import requests
+from cachetools import cached
+from fastapi import HTTPException
 
 from ccx_upgrades_data_eng.config import get_settings
 from ccx_upgrades_data_eng.models import (
+    InferenceResponse,
     UpgradeApiResponse,
     UpgradeRisksPredictors,
-    InferenceResponse,
     UpgradeRisksPredictorsWithURLs,
 )
 from ccx_upgrades_data_eng.urls import fill_urls
@@ -41,7 +42,9 @@ def get_inference_for_predictors(
 
     response = UpgradeApiResponse(
         upgrade_recommended=calculate_upgrade_recommended(risks),
-        upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(risks.model_dump()),
+        upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(
+            risks.model_dump()
+        ),
         last_checked_at=datetime.now(tz=timezone.utc),
     )
     logger.debug("Inference response is: %s", response)

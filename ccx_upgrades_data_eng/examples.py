@@ -18,11 +18,15 @@ EXAMPLE_FOC = {"name": FOC_NAME, "condition": "Failing", "reason": "AsExpected"}
 EXAMPLE_CONSOLE_URL = "https://console-openshift-console.some_url.com"
 
 URL_ALERT = (
-    EXAMPLE_CONSOLE_URL + "/monitoring/alerts?orderBy=asc&sortBy=Severity&alert-name=" + ALERT_NAME
+    EXAMPLE_CONSOLE_URL
+    + "/monitoring/alerts?orderBy=asc&sortBy=Severity&alert-name="
+    + ALERT_NAME
 )
 
 URL_OPERATOR_CONDITIONS = (
-    EXAMPLE_CONSOLE_URL + "/k8s/cluster/config.openshift.io~v1~ClusterOperator/" + FOC_NAME
+    EXAMPLE_CONSOLE_URL
+    + "/k8s/cluster/config.openshift.io~v1~ClusterOperator/"
+    + FOC_NAME
 )
 
 EXAMPLE_PREDICTORS = {

@@ -1,15 +1,16 @@
 """Tests for SSO refresh logic functionality."""
 
 import os
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from fastapi import Request
 
+from ccx_upgrades_data_eng.auth import SessionManagerError, TokenError
 from ccx_upgrades_data_eng.main import (
-    refresh_sso_token,
     get_session_and_refresh_token,
+    refresh_sso_token,
 )
-from ccx_upgrades_data_eng.auth import SessionManagerException, TokenException
 from ccx_upgrades_data_eng.tests import needed_env
 
 
@@ -48,8 +49,8 @@ async def test_refresh_sso_token_session_ok(
 async def test_refresh_sso_token_session_manager_exception(
     time_sleep_mock, asyncio_sleep_mock, get_session_manager_mock
 ):
-    """Check that refresh_sso_token handles SessionManagerException."""
-    get_session_manager_mock.side_effect = SessionManagerException("test")
+    """Check that refresh_sso_token handles SessionManagerError."""
+    get_session_manager_mock.side_effect = SessionManagerError("test")
 
     resp = await refresh_sso_token(Request({"type": "http"}), mock_call_next)
 
@@ -68,9 +69,9 @@ async def test_refresh_sso_token_session_manager_exception(
 async def test_refresh_sso_token_token_exception(
     time_sleep_mock, asyncio_sleep_mock, get_session_manager_mock
 ):
-    """Check that refresh_sso_token handles TokenException."""
+    """Check that refresh_sso_token handles TokenError."""
     session_manager_mock = MagicMock()
-    session_manager_mock.refresh_token.side_effect = TokenException("test")
+    session_manager_mock.refresh_token.side_effect = TokenError("test")
     get_session_manager_mock.return_value = session_manager_mock
 
     resp = await refresh_sso_token(Request({"type": "http"}), mock_call_next)
@@ -111,7 +112,7 @@ async def test_get_session_and_refresh_token_with_retries(
 ):
     """Test get_session_and_refresh_token with retries."""
     session_manager_mock = MagicMock()
-    session_manager_mock.refresh_token.side_effect = [TokenException("test"), None]
+    session_manager_mock.refresh_token.side_effect = [TokenError("test"), None]
     get_session_manager_mock.return_value = session_manager_mock
 
     await get_session_and_refresh_token()

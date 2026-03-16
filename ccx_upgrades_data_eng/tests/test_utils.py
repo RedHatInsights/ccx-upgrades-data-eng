@@ -1,7 +1,8 @@
 """Tests for utils module."""
 
 from random import seed
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 import ccx_upgrades_data_eng.utils as utils
@@ -69,7 +70,9 @@ def test_retry_with_exponential_backoff_delay(mock_sleep):
     """Test that the function uses exponential backoff delay."""
     mock_func = MagicMock(side_effect=[Exception("fail"), Exception("fail"), "success"])
 
-    decorated_func = utils.retry_with_exponential_backoff(base_delay=1, max_delay=5)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(base_delay=1, max_delay=5)(
+        mock_func
+    )
     result = decorated_func()
 
     assert result == "success"
@@ -85,7 +88,9 @@ def test_retry_with_exponential_backoff_custom_delays(mock_sleep):
     """Test that the function respects custom base delay and max delay."""
     mock_func = MagicMock(side_effect=[Exception("fail"), Exception("fail"), "success"])
 
-    decorated_func = utils.retry_with_exponential_backoff(base_delay=2, max_delay=10)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(base_delay=2, max_delay=10)(
+        mock_func
+    )
     result = decorated_func()
 
     assert result == "success"
@@ -161,7 +166,9 @@ async def test_async_retry_with_exponential_backoff_delay(mock_sleep):
     """Test that the async function uses exponential backoff delay."""
     mock_func = AsyncMock(side_effect=[Exception("fail"), Exception("fail"), "success"])
 
-    decorated_func = utils.retry_with_exponential_backoff(base_delay=1, max_delay=5)(mock_func)
+    decorated_func = utils.retry_with_exponential_backoff(base_delay=1, max_delay=5)(
+        mock_func
+    )
     result = await decorated_func()
 
     assert result == "success"

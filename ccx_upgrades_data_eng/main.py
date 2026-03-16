@@ -2,22 +2,24 @@
 
 import logging
 import os
+from contextlib import asynccontextmanager
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
+from prometheus_fastapi_instrumentator import Instrumentator
 
+import ccx_upgrades_data_eng.metrics as metrics
 from ccx_upgrades_data_eng.auth import (
+    SessionManagerError,
+    TokenError,
     get_session_manager,
-    SessionManagerException,
-    TokenException,
 )
-from ccx_upgrades_data_eng.config import get_settings, Settings
+from ccx_upgrades_data_eng.config import Settings, get_settings
 from ccx_upgrades_data_eng.inference import get_filled_inference_for_predictors
 from ccx_upgrades_data_eng.models import (
-    ClustersList,
     ClusterPrediction,
+    ClustersList,
     MultiClusterUpgradeApiResponse,
     UpgradeApiResponse,
 )
@@ -26,14 +28,13 @@ from ccx_upgrades_data_eng.rhobs import (
     perform_rhobs_request_multi_cluster,
 )
 from ccx_upgrades_data_eng.sentry import init_sentry
-import ccx_upgrades_data_eng.metrics as metrics
-
-from prometheus_fastapi_instrumentator import Instrumentator
 from ccx_upgrades_data_eng.utils import get_retry_decorator
 
 logger = logging.getLogger(__name__)
 
-init_sentry(os.environ.get("SENTRY_DSN", None), None, os.environ.get("SENTRY_ENVIRONMENT", None))
+init_sentry(
+    os.environ.get("SENTRY_DSN", None), None, os.environ.get("SENTRY_ENVIRONMENT", None)
+)
 
 
 def create_lifespan_handler(instrumentator: Instrumentator):
@@ -77,13 +78,13 @@ async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
     """Middleware to ensure SSO token is refreshed before processing the request."""
     try:
         await get_session_and_refresh_token()
-    except SessionManagerException as ex:
+    except SessionManagerError as ex:
         logger.error("Unable to initialize SSO session: %s", ex)
         return JSONResponse(
             "Unable to initialize SSO session",
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
-    except TokenException as ex:
+    except TokenError as ex:
         logger.error("Unable to update SSO token: %s", ex)
         return JSONResponse(
             "Unable to update SSO token",
@@ -92,15 +93,22 @@ async def refresh_sso_token(request: Request, call_next) -> JSONResponse:
     return await call_next(request)
 
 
-@app.get("/cluster/{cluster_id}/upgrade-risks-prediction", response_model=UpgradeApiResponse)
-async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depends(get_settings)):
+@app.get(
+    "/cluster/{cluster_id}/upgrade-risks-prediction", response_model=UpgradeApiResponse
+)
+async def upgrade_risks_prediction(
+    cluster_id: UUID,
+    settings: Settings = Depends(get_settings),  # noqa: B008
+):
     """Return the predition of an upgrade failure given a set of alerts and focs."""
     logger.info(f"Received cluster: {cluster_id}")
     logger.debug("Getting predictors from RHOBS")
     predictors, console_url = perform_rhobs_request(cluster_id)
 
     if console_url is None or console_url == "":
-        return JSONResponse("No data for this cluster", status_code=status.HTTP_404_NOT_FOUND)
+        return JSONResponse(
+            "No data for this cluster", status_code=status.HTTP_404_NOT_FOUND
+        )
 
     logger.debug("Getting inference result")
     inference_result = get_filled_inference_for_predictors(predictors, console_url)
@@ -113,16 +121,19 @@ async def upgrade_risks_prediction(cluster_id: UUID, settings: Settings = Depend
 
 @app.post("/upgrade-risks-prediction", response_model=MultiClusterUpgradeApiResponse)
 async def upgrade_risks_multi_cluster_predictions(
-    clusters_list: ClustersList, settings: Settings = Depends(get_settings)
+    clusters_list: ClustersList,
+    settings: Settings = Depends(get_settings),  # noqa: B008
 ):
     """Return the upgrade risks predictions for the provided clusters."""
     logger.info("Received clusters list: %s", clusters_list)
     logger.debug("Getting predictors from RHOBS or cache")
     predictors_per_cluster = perform_rhobs_request_multi_cluster(clusters_list.clusters)
 
-    results = list()
+    results = []
     for cluster, prediction in predictors_per_cluster.items():
-        inference_result = get_filled_inference_for_predictors(prediction[0], prediction[1])
+        inference_result = get_filled_inference_for_predictors(
+            prediction[0], prediction[1]
+        )
         results.append(
             ClusterPrediction(
                 cluster_id=str(cluster),

@@ -1,18 +1,20 @@
 """Utilities used in the other modules of this package."""
 
 import asyncio
-from functools import wraps
-from cachetools import TTLCache
 import logging
-import time
 import random
+import time
+from functools import wraps
+
+from cachetools import TTLCache
+from pydantic import ValidationError
+
 from ccx_upgrades_data_eng.config import (
-    get_settings,
     DEFAULT_CACHE_ENABLED,
     DEFAULT_CACHE_SIZE,
     DEFAULT_CACHE_TTL,
+    get_settings,
 )
-from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +57,9 @@ class CustomTTLCache(LoggedTTLCache):
             ttl = DEFAULT_CACHE_TTL
             maxsize = DEFAULT_CACHE_SIZE
 
-        logger.debug(f"Cache settings: Enabled: {enabled}, Max size: {maxsize}, TTL: {ttl} seconds")
+        logger.debug(
+            f"Cache settings: Enabled: {enabled}, Max size: {maxsize}, TTL: {ttl} seconds"
+        )
         if enabled:
             super().__init__(maxsize=maxsize, ttl=ttl)
         else:
@@ -63,10 +67,11 @@ class CustomTTLCache(LoggedTTLCache):
 
 
 def calculate_delay(
-    attempt, base_delay=DEFAULT_SSO_RETRY_BASE_DELAY, max_delay=DEFAULT_SSO_RETRY_MAX_DELAY
+    attempt,
+    base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
+    max_delay=DEFAULT_SSO_RETRY_MAX_DELAY,
 ):
-    """
-    Calculate the delay for the given attempt using exponential backoff.
+    """Calculate the delay for the given attempt using exponential backoff.
 
     :param attempt: The current attempt number
     :param base_delay: The base delay in seconds
@@ -77,8 +82,7 @@ def calculate_delay(
 
 
 def log_attempt(attempt, max_attempts):
-    """
-    Log the current attempt number.
+    """Log the current attempt number.
 
     :param attempt: The current attempt number
     :param max_attempts: The maximum number of attempts
@@ -87,8 +91,7 @@ def log_attempt(attempt, max_attempts):
 
 
 def log_retry(delay):
-    """
-    Log the retry delay.
+    """Log the retry delay.
 
     :param delay: The delay in seconds
     """
@@ -96,8 +99,7 @@ def log_retry(delay):
 
 
 def log_max_retries(attempt):
-    """
-    Log that the maximum number of retries has been reached.
+    """Log that the maximum number of retries has been reached.
 
     :param attempt: The current attempt number
     """
@@ -109,8 +111,7 @@ def retry_with_exponential_backoff(
     base_delay=DEFAULT_SSO_RETRY_BASE_DELAY,
     max_delay=DEFAULT_SSO_RETRY_MAX_DELAY,
 ):
-    """
-    Decorate a function with exponential backoff on any exception.
+    """Decorate a function with exponential backoff on any exception.
 
     :param max_attempts: Maximum number of retry attempts
     :param base_delay: Initial delay between retries in seconds

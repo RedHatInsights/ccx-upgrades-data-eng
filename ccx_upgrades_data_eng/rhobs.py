@@ -1,21 +1,20 @@
 """Functions for generating the RHOBS queries needed by the service."""
 
 import logging
-from typing import Dict, List, Tuple
-from uuid import UUID
 from datetime import datetime, timedelta
-import requests
-from requests.exceptions import ConnectionError, ReadTimeout
+from uuid import UUID
 
+import requests
 from cachetools import cached
 from fastapi import HTTPException
+from requests.exceptions import ConnectionError, ReadTimeout
 
+from ccx_upgrades_data_eng import metrics
 from ccx_upgrades_data_eng.auth import get_session_manager
 from ccx_upgrades_data_eng.config import get_settings
-from ccx_upgrades_data_eng import metrics
 from ccx_upgrades_data_eng.models import (
-    Alert,
     FOC,
+    Alert,
     UpgradeRisksPredictors,
 )
 from ccx_upgrades_data_eng.utils import CustomTTLCache
@@ -23,7 +22,7 @@ from ccx_upgrades_data_eng.utils import CustomTTLCache
 logger = logging.getLogger(__name__)
 
 
-def alerts_and_focs(cluster_ids: List[UUID]) -> str:
+def alerts_and_focs(cluster_ids: list[UUID]) -> str:
     """Return a query for retrieving alerts and focs for serveral clusters."""
     clusters = "|".join([str(cluster) for cluster in cluster_ids])
     return f"""console_url{{_id=~"{clusters}"}}
@@ -46,7 +45,9 @@ def query_rhobs_endpoint(query: str) -> requests.Response:
         f"{settings.rhobs_url}{rhobs_endpoint}",
         params={
             "query": query,
-            "time": get_timestamp_minutes_before(settings.rhobs_query_max_minutes_for_data),
+            "time": get_timestamp_minutes_before(
+                settings.rhobs_query_max_minutes_for_data
+            ),
         },
         timeout=settings.rhobs_request_timeout,
         verify=not settings.allow_insecure,
@@ -54,9 +55,8 @@ def query_rhobs_endpoint(query: str) -> requests.Response:
 
 
 @cached(cache=CustomTTLCache())
-def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str]:
-    """
-    Run the requests to RHOBS server and return the retrieved predictors.
+def perform_rhobs_request(cluster_id: UUID) -> tuple[UpgradeRisksPredictors, str]:
+    """Run the requests to RHOBS server and return the retrieved predictors.
 
     Also return the console url.
     """
@@ -65,7 +65,7 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
         response = query_rhobs_endpoint(query)
     except (ConnectionError, ReadTimeout) as e:
         logger.warn(f"RHOBS connection failed due to: {str(e)}")
-        raise HTTPException(status_code=424, detail="RHOBS connection failed")
+        raise HTTPException(status_code=424, detail="RHOBS connection failed") from e
 
     if response.status_code == 404:
         logger.debug('cluster "%s" not found in Observatorium', cluster_id)
@@ -80,7 +80,9 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
 
     results = response.json().get("data", {}).get("result", [])
     logger.info("Observatorium response contains %s results", len(results))
-    logger.debug("Observatorium request elapsed time: %s", response.elapsed.total_seconds())
+    logger.debug(
+        "Observatorium request elapsed time: %s", response.elapsed.total_seconds()
+    )
     logger.debug("Observatorium response results: %s", results)
     metrics.update_ccx_upgrades_rhobs_time(response.elapsed.total_seconds())
 
@@ -100,7 +102,7 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
             continue
 
         if metric["__name__"] == "console_url":
-            if "url" not in metric.keys():
+            if "url" not in metric:
                 continue
             console_url = metric["url"]
 
@@ -111,16 +113,20 @@ def perform_rhobs_request(cluster_id: UUID) -> Tuple[UpgradeRisksPredictors, str
             focs.add(FOC.parse_metric(metric))
 
         else:
-            logger.debug("received a metric from unexpected type: %s", metric["__name__"])
+            logger.debug(
+                "received a metric from unexpected type: %s", metric["__name__"]
+            )
 
-    predictors = UpgradeRisksPredictors(alerts=list(alerts), operator_conditions=list(focs))
+    predictors = UpgradeRisksPredictors(
+        alerts=list(alerts), operator_conditions=list(focs)
+    )
 
     return predictors, console_url
 
 
 def perform_rhobs_request_multi_cluster(
-    clusters: List[UUID],
-) -> Dict[UUID, Tuple[UpgradeRisksPredictors, str]]:
+    clusters: list[UUID],
+) -> dict[UUID, tuple[UpgradeRisksPredictors, str]]:
     """Run the requests to RHOBS server and return the predictors for all the clusters.
 
     It shares, reads and updates the cache for perform_rhobs_request.
@@ -149,7 +155,7 @@ def perform_rhobs_request_multi_cluster(
         response = query_rhobs_endpoint(query)
     except (ConnectionError, ReadTimeout) as e:
         logger.warn(f"RHOBS connection failed due to: {str(e)}")
-        raise HTTPException(status_code=424, detail="RHOBS connection failed")
+        raise HTTPException(status_code=424, detail="RHOBS connection failed") from e
     results = response.json().get("data", {}).get("result", [])
 
     if response.status_code != 200 or results is None:
@@ -178,7 +184,9 @@ def perform_rhobs_request_multi_cluster(
             continue
 
         if cluster_id not in predictors:
-            predictors[cluster_id] = UpgradeRisksPredictors(alerts=[], operator_conditions=[])
+            predictors[cluster_id] = UpgradeRisksPredictors(
+                alerts=[], operator_conditions=[]
+            )
 
         match metric_name:
             case "console_url":
@@ -191,7 +199,9 @@ def perform_rhobs_request_multi_cluster(
                 predictors[cluster_id].alerts.append(Alert.parse_metric(metric))
 
             case "cluster_operator_conditions":
-                predictors[cluster_id].operator_conditions.append(FOC.parse_metric(metric))
+                predictors[cluster_id].operator_conditions.append(
+                    FOC.parse_metric(metric)
+                )
 
     for cluster_id in predictors:
         cluster_id_as_uuid = UUID(cluster_id)
@@ -218,7 +228,9 @@ def get_timestamp_minutes_before(minutes):
     return d.timestamp()
 
 
-def update_cache_for_cluster(cluster_id: UUID, result: Tuple[UpgradeRisksPredictors, str]):
+def update_cache_for_cluster(
+    cluster_id: UUID, result: tuple[UpgradeRisksPredictors, str]
+):
     """Update the individual cluster cache with a given result."""
     if perform_rhobs_request.cache.maxsize == 0:
         return
@@ -227,9 +239,10 @@ def update_cache_for_cluster(cluster_id: UUID, result: Tuple[UpgradeRisksPredict
 
 
 if __name__ == "__main__":
-    from data import clusters  # fill this with a list of clusters
-    import time
     import random
+    import time
+
+    from data import clusters  # fill this with a list of clusters
 
     query = alerts_and_focs([clusters[0]])
     resp = query_rhobs_endpoint(query)
@@ -241,7 +254,7 @@ if __name__ == "__main__":
         resp = query_rhobs_endpoint(query)
         duration = time.time() - start_time
         assert resp.status_code == 200, f"{resp.status_code}: {resp.text}"
-        results = resp.json().get("data", dict()).get("result", list())
+        results = resp.json().get("data", {}).get("result", [])
         assert len(results) > 5
         print(f"{len(clusters_to_test)},{duration},{len(results)},{len(resp.content)}")
         time.sleep(1)

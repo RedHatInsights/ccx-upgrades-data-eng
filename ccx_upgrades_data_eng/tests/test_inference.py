@@ -1,22 +1,27 @@
 """Tests for the inference module."""
 
 import os
-from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi import HTTPException
 
-from ccx_upgrades_data_eng.inference import (
-    get_inference_for_predictors,
-    get_filled_inference_for_predictors,
-    calculate_upgrade_recommended,
-)
 from ccx_upgrades_data_eng.examples import (
     EXAMPLE_CONSOLE_URL,
     EXAMPLE_PREDICTORS,
     EXAMPLE_PREDICTORS_WITH_URL,
 )
-from ccx_upgrades_data_eng.models import UpgradeRisksPredictors, UpgradeRisksPredictorsWithURLs, FOC
+from ccx_upgrades_data_eng.inference import (
+    calculate_upgrade_recommended,
+    get_filled_inference_for_predictors,
+    get_inference_for_predictors,
+)
+from ccx_upgrades_data_eng.models import (
+    FOC,
+    UpgradeRisksPredictors,
+    UpgradeRisksPredictorsWithURLs,
+)
 from ccx_upgrades_data_eng.tests import needed_env
 
 INFERENCE_UPGRADE_MOCKED_RESPONSE_EMPTY_PREDICTORS = {
@@ -85,7 +90,9 @@ def test_get_inference_for_predictors_inference_ok_full(get_mock):
 
     risk_predictors = UpgradeRisksPredictors.model_validate(EXAMPLE_PREDICTORS)
     response = get_inference_for_predictors(risk_predictors)
-    expected_response = UpgradeRisksPredictorsWithURLs.model_validate(EXAMPLE_PREDICTORS)
+    expected_response = UpgradeRisksPredictorsWithURLs.model_validate(
+        EXAMPLE_PREDICTORS
+    )
 
     assert not response.upgrade_recommended
     # With an empty risk prediction, the response should be always the same

@@ -41,9 +41,9 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
 
         response = client.get("/cluster/test/upgrade-risks-prediction")
         assert response.status_code == 422
-        assert (
-            response.json()["detail"][0]["msg"]
-            == "Input should be a valid UUID, invalid character: expected an optional prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `t` at 1"
+        assert response.json()["detail"][0]["msg"] == (
+            "Input should be a valid UUID, invalid character: expected an optional "
+            "prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `t` at 1"
         )
 
     @patch("ccx_upgrades_data_eng.main.perform_rhobs_request")
@@ -222,7 +222,9 @@ def test_multi_cluster_endpoint_rhobs_ok_inference_ok(
     perform_rhobs_request_multi_cluster_mock.return_value = clusters_predictions
     get_filled_inference_for_predictors_mock.return_value = UpgradeApiResponse(
         upgrade_recommended=True,
-        upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(risk_predictors),
+        upgrade_risks_predictors=UpgradeRisksPredictorsWithURLs.model_validate(
+            risk_predictors
+        ),
         last_checked_at=test_date,
     )
 

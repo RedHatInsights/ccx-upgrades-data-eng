@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Utility functions to redirect logs to cloudwatch.
+"""Utility functions to redirect logs to cloudwatch."""
 
-Copied from https://github.com/RedHatInsights/insights-ccx-messaging/blob/main/ccx_messaging/utils/logging.py  # noqa: E501
-"""
+# Copied from https://github.com/RedHatInsights/insights-ccx-messaging/
+# blob/main/ccx_messaging/utils/logging.py
 
-import os
 import logging
+import os
 
 from boto3.session import Session
 from watchtower import CloudWatchLogHandler
@@ -35,6 +34,7 @@ class InitializedCloudWatchLogger(logging.Handler):
             logging.NullHandler: if the hanlder couldn't be configured.
                 or
             watchtower.CloudWatchLogHandler: if it could be configured.
+
         """
         enabled = os.getenv("LOGGING_TO_CW_ENABLED", "False").lower()
         if enabled not in ("true", "1", "t", "yes"):
@@ -52,7 +52,7 @@ class InitializedCloudWatchLogger(logging.Handler):
         missing_envs = list(
             filter(
                 lambda key: os.environ.get(key, "").strip() == "",
-                [key for key in aws_config_vars],
+                aws_config_vars,
             )
         )
 

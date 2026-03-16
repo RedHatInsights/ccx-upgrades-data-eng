@@ -5,21 +5,21 @@ import datetime
 import pydantic
 import pytest
 
+from ccx_upgrades_data_eng.examples import (
+    EXAMPLE_CLUSTER_ID,
+    EXAMPLE_DATE,
+    EXAMPLE_PREDICTORS,
+    EXAMPLE_PREDICTORS_WITH_EMPTY_URL,
+)
 from ccx_upgrades_data_eng.models import (
+    FOC,
     Alert,
     ClusterPrediction,
-    FOC,
     InferenceResponse,
     MultiClusterUpgradeApiResponse,
     UpgradeApiResponse,
     UpgradeRisksPredictors,
     UpgradeRisksPredictorsWithURLs,
-)
-from ccx_upgrades_data_eng.examples import (
-    EXAMPLE_PREDICTORS,
-    EXAMPLE_PREDICTORS_WITH_EMPTY_URL,
-    EXAMPLE_DATE,
-    EXAMPLE_CLUSTER_ID,
 )
 
 GOOD_ALERTS = [
@@ -276,7 +276,10 @@ def test_upgrade_api_response():
         upgrade_risks_predictors=EXAMPLE_PREDICTORS,
         last_checked_at=EXAMPLE_DATE,
     )
-    assert response.upgrade_risks_predictors.model_dump() == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
+    assert (
+        response.upgrade_risks_predictors.model_dump()
+        == EXAMPLE_PREDICTORS_WITH_EMPTY_URL
+    )
 
 
 def test_inference_response():

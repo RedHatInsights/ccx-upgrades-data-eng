@@ -1,6 +1,7 @@
 """Utility functions to fill the alerts and focs with urls to console."""
 
 from urllib.parse import urljoin
+
 from ccx_upgrades_data_eng.models import UpgradeApiResponse
 
 

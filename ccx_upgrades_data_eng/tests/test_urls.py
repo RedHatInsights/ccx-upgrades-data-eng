@@ -1,11 +1,11 @@
 """Tests for the urls module."""
 
-from ccx_upgrades_data_eng.models import UpgradeApiResponse
 from ccx_upgrades_data_eng.examples import (
+    EXAMPLE_DATE,
     EXAMPLE_PREDICTORS,
     EXAMPLE_PREDICTORS_WITH_URL,
-    EXAMPLE_DATE,
 )
+from ccx_upgrades_data_eng.models import UpgradeApiResponse
 from ccx_upgrades_data_eng.urls import fill_urls
 
 
@@ -49,7 +49,9 @@ def test_fill_urls_with_console_url_no_names():
                 "severity": "info",
             }
         ],
-        "operator_conditions": [{"name": "", "condition": "Failing", "reason": "AsExpected"}],
+        "operator_conditions": [
+            {"name": "", "condition": "Failing", "reason": "AsExpected"}
+        ],
     }
     expected = {
         "alerts": [

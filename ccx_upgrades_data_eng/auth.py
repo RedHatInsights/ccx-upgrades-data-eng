@@ -13,11 +13,11 @@ from ccx_upgrades_data_eng.config import get_settings
 logger = logging.getLogger(__name__)
 
 
-class SessionManagerException(Exception):
+class SessionManagerError(Exception):
     """An exception related to the initialization of the session manager."""
 
 
-class TokenException(Exception):
+class TokenError(Exception):
     """An exception related to the refreshment of the SSO token."""
 
 
@@ -40,7 +40,7 @@ class Oauth2Manager:
         try:
             oidc_config = requests.get(oauth_config_uri, verify=self.verify).json()
         except Exception as ex:
-            raise SessionManagerException(
+            raise SessionManagerError(
                 f"Error getting the oauth config from the SSO server:\n{ex}"
             ) from ex
 
@@ -67,7 +67,7 @@ class Oauth2Manager:
                 verify=self.verify,
             )
         except Exception as ex:
-            raise TokenException(f"Error refreshing the token:\n{ex}") from ex
+            raise TokenError(f"Error refreshing the token:\n{ex}") from ex
 
     def get_session(self) -> OAuth2Session:
         """Return the OauthSession2 after refreshing the auth token."""
@@ -75,7 +75,7 @@ class Oauth2Manager:
         return self.session
 
 
-@lru_cache()
+@lru_cache
 def get_session_manager() -> Oauth2Manager:
     """Oauth2Manager cache."""
     settings = get_settings()

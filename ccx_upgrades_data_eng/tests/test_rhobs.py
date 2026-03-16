@@ -3,41 +3,43 @@
 import importlib
 import os
 import sys
-from requests.exceptions import ConnectionError
 from unittest.mock import MagicMock, patch
 from uuid import UUID
 
 import pytest
 from fastapi import HTTPException
+from requests.exceptions import ConnectionError
 
+from ccx_upgrades_data_eng.models import UpgradeRisksPredictors
 from ccx_upgrades_data_eng.rhobs import (
     alerts_and_focs,
     perform_rhobs_request,
     perform_rhobs_request_multi_cluster,
     update_cache_for_cluster,
 )
-from ccx_upgrades_data_eng.models import UpgradeRisksPredictors
-from ccx_upgrades_data_eng.utils import LoggedTTLCache
-
 from ccx_upgrades_data_eng.tests import (
-    needed_env,
-    needed_env_cache_enabled,
     RHOBS_EMPTY_REPONSE,
     RHOBS_RESPONSE,
     RHOBS_RESPONSE_MULTI_CLUSTER,
     RHOBS_RESPONSE_NONE_RESULT,
+    needed_env,
+    needed_env_cache_enabled,
 )
+from ccx_upgrades_data_eng.utils import LoggedTTLCache
 
 
 def test_alerts_and_focs():
     """Test if alerts_and_focs returns the expected query."""
-    assert alerts_and_focs(["test1", "test2"]) == """console_url{_id=~"test1|test2"}
+    assert (
+        alerts_and_focs(["test1", "test2"])
+        == """console_url{_id=~"test1|test2"}
 or
 alerts{_id=~"test1|test2", namespace=~"openshift-.*", severity=~"warning|critical"}
 or
 cluster_operator_conditions{_id=~"test1|test2", condition="Available"} == 0
 or
 cluster_operator_conditions{_id=~"test1|test2", condition="Degraded"} == 1"""
+    )
 
 
 @pytest.mark.parametrize("response_status", [300, 404, 500])
@@ -178,7 +180,9 @@ def test_perform_rhobs_request_no_cluster_version(get_session_manager_mock):
 @pytest.mark.parametrize("response_status", [300, 404, 500])
 @patch.dict(os.environ, needed_env)
 @patch("ccx_upgrades_data_eng.rhobs.get_session_manager")
-def test_perform_rhobs_request_multi_cluster_nok(get_session_manager_mock, response_status):
+def test_perform_rhobs_request_multi_cluster_nok(
+    get_session_manager_mock, response_status
+):
     """Check result when RHOBS return a non 200."""
     # repare the mocks
     rhobs_response_mock = MagicMock()
@@ -195,7 +199,7 @@ def test_perform_rhobs_request_multi_cluster_nok(get_session_manager_mock, respo
     # Perform the request
     cluster_id = "34c3ecc5-624a-49a5-bab8-4fdc5e51a266"
     result = perform_rhobs_request_multi_cluster([cluster_id])
-    assert result == dict()
+    assert result == {}
 
 
 @patch.dict(os.environ, needed_env)
@@ -282,16 +286,30 @@ def test_perform_rhobs_request_multi_cluster(get_session_manager_mock):
     assert len(cluster_predictions) == 2
     assert len(cluster_predictions[uuid_ok][0].alerts) == 1
     assert len(cluster_predictions[uuid_ok][0].operator_conditions) == 1
-    assert cluster_predictions[uuid_ok][0].alerts[0].name == "APIRemovedInNextEUSReleaseInUse"
-    assert cluster_predictions[uuid_ok][0].alerts[0].namespace == "openshift-kube-apiserver"
+    assert (
+        cluster_predictions[uuid_ok][0].alerts[0].name
+        == "APIRemovedInNextEUSReleaseInUse"
+    )
+    assert (
+        cluster_predictions[uuid_ok][0].alerts[0].namespace
+        == "openshift-kube-apiserver"
+    )
     assert cluster_predictions[uuid_ok][0].alerts[0].severity == "info"
-    assert cluster_predictions[uuid_ok][0].operator_conditions[0].name == "authentication"
-    assert cluster_predictions[uuid_ok][0].operator_conditions[0].condition == "Not Available"
+    assert (
+        cluster_predictions[uuid_ok][0].operator_conditions[0].name == "authentication"
+    )
+    assert (
+        cluster_predictions[uuid_ok][0].operator_conditions[0].condition
+        == "Not Available"
+    )
     assert (
         cluster_predictions[uuid_ok][0].operator_conditions[0].reason
         == "OAuthServerRouteEndpointAccessibleController_EndpointUnavailable"
     )
-    assert cluster_predictions[uuid_ok][1] == "https://console-openshift-console.some_url.com"
+    assert (
+        cluster_predictions[uuid_ok][1]
+        == "https://console-openshift-console.some_url.com"
+    )
 
 
 def test_update_cache_for_cluster():
@@ -347,7 +365,9 @@ def test_rhobs_result_none(get_session_manager_mock):
 
 @patch.dict(os.environ, needed_env_cache_enabled)
 @patch("ccx_upgrades_data_eng.auth.get_session_manager")
-def test_perform_rhobs_request_multi_cluster_after_single_cluster_empty(get_session_manager_mock):
+def test_perform_rhobs_request_multi_cluster_after_single_cluster_empty(
+    get_session_manager_mock,
+):
     """Check RHOBS multi cluster response after cached no data single cluster response."""
     # RHOBS functions need to be reloaded because cache
     # has to be initialized with correct env variables

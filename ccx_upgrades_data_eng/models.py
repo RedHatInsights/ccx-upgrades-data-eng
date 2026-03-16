@@ -1,10 +1,10 @@
 """Models to be used in the REST API."""
 
-from typing import Any, List, Optional, Type
+from datetime import datetime
+from typing import Any
 from uuid import UUID
 
-from pydantic import ConfigDict, BaseModel  # pylint: disable=no-name-in-module
-from datetime import datetime
+from pydantic import BaseModel, ConfigDict  # pylint: disable=no-name-in-module
 
 from ccx_upgrades_data_eng.examples import (
     EXAMPLE_ALERT,
@@ -18,13 +18,13 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
     """Alert containing name, namespace and severity."""
 
     name: str
-    namespace: Optional[str] = None
+    namespace: str | None = None
     severity: str
     model_config = ConfigDict(json_schema_extra={"example": {"alert": EXAMPLE_ALERT}})
 
     @classmethod
-    def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
-        """Wrap the parsing of an Observatorium metric object and return an Alert"""
+    def parse_metric(cls: type["Model"], obj: Any) -> "Model":  # noqa
+        """Wrap the parsing of an Observatorium metric object and return an Alert."""
         obj = obj.copy()  # dont modify the original obj
         if "alertname" in obj:
             obj["name"] = obj["alertname"]
@@ -41,7 +41,9 @@ class Alert(BaseModel):  # pylint: disable=too-few-public-methods
 
     def __hash__(self):
         """Needed in order to remove duplicates from a list of focs."""
-        return hash(("name", self.name, "namespace", self.namespace, "severity", self.severity))
+        return hash(
+            ("name", self.name, "namespace", self.namespace, "severity", self.severity)
+        )
 
 
 class FOC(BaseModel):  # pylint: disable=too-few-public-methods
@@ -49,19 +51,18 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
 
     name: str
     condition: str
-    reason: Optional[str] = None
+    reason: str | None = None
     model_config = ConfigDict(json_schema_extra={"example": {"foc": EXAMPLE_FOC}})
 
     @classmethod
     def parse_metric(cls: Type["Model"], obj: Any) -> "Model":  # noqa
-        """Wrap the parsing of an Observatorium metric object and return a FOC"""
+        """Wrap the parsing of an Observatorium metric object and return a FOC."""
         obj = obj.copy()  # dont modify the original obj
-        if "condition" in obj:
-            if obj["condition"] == "Available":
-                # because the rhobs query looks for
-                # cluster_operator_conditions{{condition="Available"}} == 0
-                # it is needed to update the condition to match
-                obj["condition"] = "Not Available"
+        if "condition" in obj and obj["condition"] == "Available":
+            # because the rhobs query looks for
+            # cluster_operator_conditions{{condition="Available"}} == 0
+            # it is needed to update the condition to match
+            obj["condition"] = "Not Available"
 
         return FOC.model_validate(obj)
 
@@ -75,14 +76,16 @@ class FOC(BaseModel):  # pylint: disable=too-few-public-methods
 
     def __hash__(self):
         """Needed in order to remove duplicates from a list of focs."""
-        return hash(("name", self.name, "condition", self.condition, "reason", self.reason))
+        return hash(
+            ("name", self.name, "condition", self.condition, "reason", self.reason)
+        )
 
 
 class UpgradeRisksPredictors(BaseModel):
     """A dict containing list of alerts and FOCs."""
 
-    alerts: List[Alert]
-    operator_conditions: List[FOC]
+    alerts: list[Alert]
+    operator_conditions: list[FOC]
 
     def __hash__(self):
         """Needed in order to cache functions that use this model."""
@@ -129,13 +132,12 @@ class FOCWithURL(FOC):
 class UpgradeRisksPredictorsWithURLs(BaseModel):
     """A dict containing list of alerts and FOCs."""
 
-    alerts: List[AlertWithURL]
-    operator_conditions: List[FOCWithURL]
+    alerts: list[AlertWithURL]
+    operator_conditions: list[FOCWithURL]
 
 
 class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
-    """
-    UpgradeApiResponse is the response for the upgrade-risks-prediction endpoint.
+    """UpgradeApiResponse is the response for the upgrade-risks-prediction endpoint.
 
     Contain the result of the prediction: whether the upgrade will fail or not;
     and the predictors that the model detected as actual risks.
@@ -167,30 +169,28 @@ class UpgradeApiResponse(BaseModel):  # pylint: disable=too-few-public-methods
 
 
 class ClusterPrediction(BaseModel):
-    """
-    ClusterPrediction is an element of the response for the upgrade-risks-prediction endpoint for multiple clusters.
+    """Represents an element of the response in a MultiClusterUpgradeApiResponse.
 
-    Contains the prediction for a single cluster, like UpgradeApiResponse, but including 2 extra fields: cluster_id and
-    prediction_status. The later is to indicate if the prediction was performed correctly, not the result of the
-    prediction.
+    Contains the prediction for a single cluster, like UpgradeApiResponse, but including 2 extra
+    fields: cluster_id and prediction_status. The later is to indicate if the prediction was
+    performed correctly, not the result of the prediction.
     """
 
     cluster_id: str
     prediction_status: str
-    upgrade_recommended: Optional[bool] = None
-    upgrade_risks_predictors: Optional[UpgradeRisksPredictorsWithURLs] = None
-    last_checked_at: Optional[datetime] = None
+    upgrade_recommended: bool | None = None
+    upgrade_risks_predictors: UpgradeRisksPredictorsWithURLs | None = None
+    last_checked_at: datetime | None = None
 
 
 class MultiClusterUpgradeApiResponse(BaseModel):
-    """
-    MultiClusterUpgradeApiResponse is the response for the upgrade-risks-prediction endpoint for multiple clusters.
+    """Represents the response for the upgrade-risks-prediction endpoint for multiple clusters.
 
     Contain the result of the prediction for each cluster: whether the upgrade will fail or not;
     and the predictors that the model detected as actual risks.
     """
 
-    predictions: List[ClusterPrediction]
+    predictions: list[ClusterPrediction]
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -212,10 +212,9 @@ class MultiClusterUpgradeApiResponse(BaseModel):
 
 
 class ClustersList(BaseModel):
-    """
-    ClustersList is the definition for the request body for the upgrade-risk-prediction endpoint.
+    """ClustersList is the definition for the request body for the upgrade-risk-prediction endpoint.
 
     It allows to include an array of cluster ids from the request.
     """
 
-    clusters: List[UUID]
+    clusters: list[UUID]

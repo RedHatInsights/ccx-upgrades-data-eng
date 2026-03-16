@@ -1,21 +1,24 @@
 """Test for config module."""
 
 import os
+import unittest.mock
+
 import pytest
+from pydantic import ValidationError
 
 from ccx_upgrades_data_eng.config import (
-    get_settings,
     RH_OAUTH_ISSUER,
-    RHOBS_URL,
-    RHOBS_DEFAULT_TENANT,
     RHOBS_DEFAULT_REQUEST_TIMEOUT,
+    RHOBS_DEFAULT_TENANT,
+    RHOBS_URL,
+    get_settings,
 )
 
 
 def test_get_settings_fail():
     """Test get_settings with improper environment configured."""
     get_settings.cache_clear()
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         get_settings()
 
 
@@ -23,18 +26,14 @@ def test_default_settings_not_set():
     """Test that the settings with default value do not need to be set."""
     get_settings.cache_clear()
 
-    old_envs = os.environ.copy()
-
-    os.environ = {
+    environ = {
         "CLIENT_ID": "test-client_id",
         "CLIENT_SECRET": "test-client_secret",
         "INFERENCE_URL": "test-inference_url",
     }
 
-    settings = get_settings()
-
-    # clear the envs so that we don't interfere with other tests
-    os.environ = old_envs
+    with unittest.mock.patch.dict(os.environ, environ):
+        settings = get_settings()
 
     assert settings.client_id == "test-client_id"
     assert settings.client_secret == "test-client_secret"
@@ -57,9 +56,7 @@ def test_get_settings_from_env():
     """Test get_settings with the configuration exported as env variables."""
     get_settings.cache_clear()
 
-    old_envs = os.environ.copy()
-
-    os.environ = {
+    environ = {
         "CLIENT_ID": "test-client_id",
         "CLIENT_SECRET": "test-client_secret",
         "SSO_ISSUER": "test-sso_issuer",
@@ -72,20 +69,13 @@ def test_get_settings_from_env():
         "CACHE_ENABLED": "true",
         "CACHE_TTL": "30",
         "CACHE_SIZE": "10",
+        "SSO_RETRY_MAX_ATTEMPTS": "3",
+        "SSO_RETRY_BASE_DELAY": "2",
+        "SSO_RETRY_MAX_DELAY": "60",
     }
 
-    os.environ.update(
-        {
-            "SSO_RETRY_MAX_ATTEMPTS": "3",
-            "SSO_RETRY_BASE_DELAY": "2",
-            "SSO_RETRY_MAX_DELAY": "60",
-        }
-    )
-
-    settings = get_settings()
-
-    # clear the envs so that we don't interfere with other tests
-    os.environ = old_envs
+    with unittest.mock.patch.dict(os.environ, environ):
+        settings = get_settings()
 
     assert settings.client_id == "test-client_id"
     assert settings.client_secret == "test-client_secret"

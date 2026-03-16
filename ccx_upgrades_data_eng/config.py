@@ -2,6 +2,7 @@
 
 import logging
 from functools import lru_cache
+
 from pydantic import ValidationError
 from pydantic_settings import BaseSettings
 
@@ -44,7 +45,7 @@ class Settings(BaseSettings):
     cache_size: int = DEFAULT_CACHE_SIZE
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Create the Settings object for the cache."""
     try:
