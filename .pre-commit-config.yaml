@@ -44,7 +44,6 @@ repos:
     hooks:
       # Adding a set of rules to ruff check to match pyupgrade rules
       - id: ruff-check
-        language_version: python3.11
         args:
           - '--fix'
           - '--line-length=100'
