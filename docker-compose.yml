@@ -24,7 +24,7 @@ services:
       - LOG_LEVEL=DEBUG
     ports:
       - 8080:8080
-  
+
   ccx-upgrades-inference:
     # git clone https://github.com/RedHatInsights/ccx-upgrades-inference
     # cd ccx-upgrades-inference
@@ -32,7 +32,7 @@ services:
     image: ccx-upgrades-inference
     ports:
       - 8001:8000
-  
+
   obsint-mocks:
     # git clone git@github.com:RedHatInsights/obsint-mocks.git
     # cd obsint-mocks
@@ -40,4 +40,3 @@ services:
     image: quay.io/redhat-services-prod/obsint-processing-tenant/obsint-mocks/obsint-mocks
     ports:
       - 8002:8000
-

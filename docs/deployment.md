@@ -48,11 +48,11 @@ Wait for the command prompt. Then run some requests:
 curl -s 'ccx-upgrades-data-eng-svc:8000/upgrade-risks-prediction/?cluster_id=34c3ecc5-624a-49a5-bab8-4fdc5e51a266'
 ```
 
-You should see the response. Exit the container using `CTRL+D` or `exit`. The 
+You should see the response. Exit the container using `CTRL+D` or `exit`. The
 pod is automatically deleted.
 
 6. Delete the namespace
 
 ```
-bonfire namespace release $NAMESPACE 
+bonfire namespace release $NAMESPACE
 ```
