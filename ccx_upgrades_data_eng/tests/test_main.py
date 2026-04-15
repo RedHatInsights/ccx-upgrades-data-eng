@@ -42,8 +42,7 @@ class TestUpgradeRisksPrediction:  # pylint: disable=too-few-public-methods
         response = client.get("/cluster/test/upgrade-risks-prediction")
         assert response.status_code == 422
         assert response.json()["detail"][0]["msg"] == (
-            "Input should be a valid UUID, invalid character: expected an optional "
-            "prefix of `urn:uuid:` followed by [0-9a-fA-F-], found `t` at 1"
+            "Input should be a valid UUID, invalid character: found `t` at 1"
         )
 
     @patch("ccx_upgrades_data_eng.main.perform_rhobs_request")
