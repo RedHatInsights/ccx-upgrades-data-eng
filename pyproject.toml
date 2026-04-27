@@ -1,8 +1,54 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm", "wheel"]
+requires = ["setuptools>=77.0.3", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "ccx-upgrades-data-eng"
+dynamic = ["version"]
+readme = "README.md"
+license = {text="Apache 2.0"}
+authors = [
+    {name="CCX Processing Team", email="ccx-core-processing-team@redhat.com"}
+]
+classifiers = [
+    "Framework :: FastAPI",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.9.7"
+]
+
+requires-python = ">= 3.8"
+dependencies = [
+    "boto3",
+    "cachetools==7.0.6",
+    "fastapi==0.136.1",
+    "fastapi-utils==0.8.0",
+    "prometheus_fastapi_instrumentator==7.1.0",
+    "pydantic-settings==2.14.0",
+    "python-json-logger",
+    "requests==2.33.1",
+    "requests-oauthlib==2.0.0",
+    "sentry-sdk>=1.37.1",
+    "uvicorn[standard]==0.46.0",
+    "watchtower"
+]
+
+[project.urls]
+Homepage = "https://github.com/RedHatInsights/ccx-upgrades-data-eng"
+
+[tool.setuptools.packages.find]
+exclude = ["*.tests"]
+
 [tool.setuptools_scm]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "httpx"    
+]
 
 [pycodestyle]
 max-line-length = 100

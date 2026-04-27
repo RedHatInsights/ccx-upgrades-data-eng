@@ -1,19 +1,19 @@
-name: Unit Tests
+name: Python Unit tests
 
 on:
   pull_request:
   push:
-    branches:
-      - main
-
-permissions:
-  contents: read
+    branches: [main, master]
 
 jobs:
   test:
-    uses: RedHatInsights/processing-tools/.github/workflows/pytests.yaml@master
+    strategy:
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+
+    uses: joselsegura/processing-tools/.github/workflows/pytests.yaml@add-pytest-example
     with:
+      python_version: ${{ matrix.python-version }}
       packages: ccx_upgrades_data_eng
-      install_package: true
-      cov_branch: true
-    secrets: inherit
