@@ -14,6 +14,5 @@ jobs:
     uses: RedHatInsights/processing-tools/.github/workflows/pytests.yaml@master
     with:
       packages: ccx_upgrades_data_eng
-      install_package: true
       cov_branch: true
     secrets: inherit
