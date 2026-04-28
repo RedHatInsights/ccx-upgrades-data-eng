@@ -22,6 +22,7 @@ def test_logged_ttl_cache_popitem(logger_mock):
     assert key == 0
     assert value == 0
     assert logger_mock.debug.called
+    assert False
 
 
 # ----------------------------------------------------------------------
