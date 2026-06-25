@@ -24,7 +24,7 @@ dependencies = [
     "cachetools==7.1.4",
     "fastapi==0.138.0",
     "fastapi-utils==0.8.0",
-    "prometheus_fastapi_instrumentator==8.0.0",
+    "prometheus_fastapi_instrumentator==8.0.1",
     "pydantic-settings==2.14.2",
     "python-json-logger",
     "requests==2.34.2",
